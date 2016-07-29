@@ -47,6 +47,7 @@ limitations under the License.
     <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/sentry.git</developerConnection>
     <url>https://git-wip-us.apache.org/repos/asf/sentry</url>
   </scm>
+  
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -623,7 +624,9 @@ limitations under the License.
     <module>sentry-binding</module>
     <module>sentry-provider</module>
     <module>sentry-policy</module>
+	<!--
     <module>sentry-tests</module>
+	-->
     <module>sentry-hdfs</module>
     <module>sentry-solr</module>
     <module>sentry-dist</module>
@@ -967,6 +970,11 @@ limitations under the License.
       <id>apache</id>
       <url>https://repository.apache.org/content/repositories/</url>
     </repository>
+	<repository>
+      <id>cloudera</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+    </repository>
   </repositories>
+  
 
 </project>

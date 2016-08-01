@@ -19,6 +19,7 @@ package org.apache.sentry.binding.metastore;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -275,8 +276,9 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
         " since the operation failed. \n");
       return;
     }
-
-    for (Partition part : partitionEvent.getPartitions()) {
+    Iterator<Partition> parts = partitionEvent.getPartitionIterator();
+    while (parts.hasNext()) {
+      Partition part = parts.next();
       if (part.getSd() != null && part.getSd().getLocation() != null) {
         String authzObj = part.getDbName() + "." + part.getTableName();
         String path = part.getSd().getLocation();
@@ -285,6 +287,16 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
         }
       }
     }
+
+//    for (Partition part : partitionEvent.getPartitions()) {
+//      if (part.getSd() != null && part.getSd().getLocation() != null) {
+//        String authzObj = part.getDbName() + "." + part.getTableName();
+//        String path = part.getSd().getLocation();
+//        for (SentryMetastoreListenerPlugin plugin : sentryPlugins) {
+//          plugin.addPath(authzObj, path);
+//        }
+//      }
+//    }
     super.onAddPartition(partitionEvent);
   }
 
@@ -301,7 +313,8 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
 
     String authzObj = partitionEvent.getTable().getDbName() + "."
         + partitionEvent.getTable().getTableName();
-    String path = partitionEvent.getPartition().getSd().getLocation();
+//    String path = partitionEvent.getPartition().getSd().getLocation();
+    String path = partitionEvent.getPartitionIterator().next().getSd().getLocation();
     for (SentryMetastoreListenerPlugin plugin : sentryPlugins) {
       plugin.removePath(authzObj, path);
     }

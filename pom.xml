@@ -72,7 +72,8 @@ limitations under the License.
     <hadoop.version>2.6.0</hadoop.version>
     <hamcrest.version>1.3</hamcrest.version>
     <hive-v2.version>2.0.0</hive-v2.version>
-    <hive.version>1.1.0</hive.version>
+  <!--  <hive.version>1.1.0</hive.version>  -->
+    <hive.version>2.0.0</hive.version>
     <jackson.version>1.8.8</jackson.version>
     <jdo-api.version>3.0.1</jdo-api.version>
     <jettyVersion>8.1.19.v20160209</jettyVersion>
@@ -345,7 +346,7 @@ limitations under the License.
       <dependency>
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-jdbc</artifactId>
-        <version>${hive.version}</version>
+       <version>${hive.version}</version> 
       </dependency>
       <dependency>
         <groupId>org.apache.hive</groupId>
@@ -644,6 +645,7 @@ limitations under the License.
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
       </plugin>
+	  <!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
@@ -672,6 +674,7 @@ limitations under the License.
           </execution>
         </executions>
       </plugin>
+	  -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-eclipse-plugin</artifactId>

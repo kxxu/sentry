@@ -29,6 +29,7 @@ limitations under the License.
   <name>Sentry Hive Binding Common</name>
 
   <dependencies>
+
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>

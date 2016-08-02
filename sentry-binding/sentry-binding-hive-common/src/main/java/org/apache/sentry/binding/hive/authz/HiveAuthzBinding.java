@@ -85,13 +85,17 @@ public class HiveAuthzBinding {
     validateHiveConfig(hiveHook, hiveConf, authzConf);
     this.hiveConf = hiveConf;
     this.authzConf = authzConf;
+    //验证的hive的server的名称，配置key为sentry.hive.server
     this.authServer = new Server(authzConf.get(AuthzConfVars.AUTHZ_SERVER_NAME.getVar()));
+    //获取鉴权provider，用来读取权限的授权列表
     this.authProvider = getAuthProvider(hiveConf, authzConf, authServer.getName());
     this.open = true;
+    //在hiveConf和sentryConf中获取hive.sentry.active.role.set
     this.activeRoleSet = parseActiveRoleSet(hiveConf.get(HiveAuthzConf.SENTRY_ACTIVE_ROLE_SET,
         authzConf.get(HiveAuthzConf.SENTRY_ACTIVE_ROLE_SET, "")).trim());
   }
 
+  //针对每个用户生成一个
   public HiveAuthzBinding (HiveHook hiveHook, HiveConf hiveConf, HiveAuthzConf authzConf,
       PrivilegeCache privilegeCache) throws Exception {
     validateHiveConfig(hiveHook, hiveConf, authzConf);
@@ -203,10 +207,13 @@ public class HiveAuthzBinding {
   public static AuthorizationProvider getAuthProvider(HiveConf hiveConf, HiveAuthzConf authzConf,
         String serverName) throws Exception {
     // get the provider class and resources from the authz config
+    //获取group信息的方式，默认HadoopGroupResourceAuthorizationProvider
     String authProviderName = authzConf.get(AuthzConfVars.AUTHZ_PROVIDER.getVar());
     String resourceName =
         authzConf.get(AuthzConfVars.AUTHZ_PROVIDER_RESOURCE.getVar());
+    //获取授权信息存储方式，默认SimpleFileProviderBackend
     String providerBackendName = authzConf.get(AuthzConfVars.AUTHZ_PROVIDER_BACKEND.getVar());
+    //获取授权策略，默认CommonPolicyEngine
     String policyEngineName = authzConf.get(AuthzConfVars.AUTHZ_POLICY_ENGINE.getVar());
 
     // for the backward compatibility

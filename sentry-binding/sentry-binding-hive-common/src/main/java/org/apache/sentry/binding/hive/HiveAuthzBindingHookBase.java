@@ -298,10 +298,12 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
     // still authorizing DESCRIBE [EXTENDED|FORMATTED] as table-level.
     // This is done by treating DESCRIBE <table> the same as SHOW COLUMNS, which only requires column
     // level privs.
+    //默认为false，主要用来区分desc的不同类别
     if (isDescTableBasic) {
       stmtAuthObject = columnMetaDataPrivilege;
     }
 
+    //操作需要的权限区域
     switch (stmtAuthObject.getOperationScope()) {
 
     case SERVER :

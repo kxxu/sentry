@@ -108,9 +108,9 @@ public class SentryGrantRevokeTask extends Task<DDLWork> implements Serializable
   private String ipAddress;
   private HiveOperation stmtOperation;
 
-  @Override
+//  @Override
   public void initialize(HiveConf conf, QueryPlan queryPlan, DriverContext ctx) {
-    super.initialize(conf, queryPlan, driverContext);
+//    super.initialize(conf, queryPlan, driverContext);
     this.conf = conf;
   }
 

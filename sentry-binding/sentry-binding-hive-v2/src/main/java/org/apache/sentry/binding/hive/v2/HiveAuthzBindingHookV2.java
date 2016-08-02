@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.security.CodeSource;
 import java.util.List;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.hive.ql.exec.DDLTask;
 import org.apache.hadoop.hive.ql.exec.SentryFilterDDLTask;
 import org.apache.hadoop.hive.ql.exec.Task;
@@ -42,6 +43,7 @@ import org.apache.sentry.core.model.db.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//在sql的解析阶段进行权限验证
 public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
   private static final Logger LOG = LoggerFactory
       .getLogger(HiveAuthzBindingHookV2.class);
@@ -50,6 +52,7 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
     super();
   }
 
+  //sql解析前
   @Override
   public ASTNode preAnalyze(HiveSemanticAnalyzerHookContext context, ASTNode ast)
       throws SemanticException {
@@ -97,12 +100,14 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
 
   /**
    * Post analyze hook that invokes hive auth bindings
+   * sql解析后
    */
   @Override
   public void postAnalyze(HiveSemanticAnalyzerHookContext context,
       List<Task<? extends Serializable>> rootTasks) throws SemanticException {
     HiveOperation stmtOperation = getCurrentHiveStmtOp();
     Subject subject = new Subject(context.getUserName());
+    //过滤DDL task
     for (int i = 0; i < rootTasks.size(); i++) {
       Task<? extends Serializable> task = rootTasks.get(i);
       if (task instanceof DDLTask) {
@@ -112,16 +117,20 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
         rootTasks.set(i, filterTask);
       }
     }
+    //获取hive操作对应的sentry权限类型
     HiveAuthzPrivileges stmtAuthObject = HiveAuthzPrivilegesMapV2.getHiveAuthzPrivileges(stmtOperation);
+    LOG.info("sentry auth, statement type: " + stmtOperation + ", require privileges: " + stmtAuthObject);
     if (stmtOperation.equals(HiveOperation.CREATEFUNCTION)
         || stmtOperation.equals(HiveOperation.DROPFUNCTION)
         || stmtOperation.equals(HiveOperation.CREATETABLE)) {
       try {
         if (stmtAuthObject == null) {
           // We don't handle authorizing this statement
+          LOG.info("sentry do not authorizing this statement, statement type: " + stmtOperation + ", user: "
+                  + context.getUserName() + ", command: " + context.getCommand());
           return;
         }
-
+        //使用sentry bingding进行权限验证
         authorizeWithHiveBindings(context, stmtAuthObject, stmtOperation);
       } catch (AuthorizationException e) {
         executeOnFailureHooks(context, stmtOperation, e);
@@ -137,6 +146,7 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
             HiveAuthzConf.HIVE_SENTRY_PRIVILEGE_ERROR_MESSAGE + "\n " + e.getMessage();
         // AuthorizationException is not a real exception, use the info level to record this.
         LOG.info(msgForLog);
+        LOG.info("sentry auth error: " + Throwables.getStackTraceAsString(e));
         throw new SemanticException(msgForConsole, e);
       } finally {
         hiveAuthzBinding.close();

@@ -113,6 +113,7 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
       if (task instanceof DDLTask) {
         SentryFilterDDLTask filterTask =
             new SentryFilterDDLTask(hiveAuthzBinding, subject, stmtOperation);
+        LOG.info("sentry filter ddl task");
         filterTask.setWork((DDLWork)task.getWork());
         rootTasks.set(i, filterTask);
       }

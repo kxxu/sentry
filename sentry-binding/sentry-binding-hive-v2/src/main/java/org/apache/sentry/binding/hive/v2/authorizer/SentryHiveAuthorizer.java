@@ -34,6 +34,8 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveRoleGrant;
 import org.apache.sentry.binding.hive.v2.SentryHivePrivilegeObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Convenience implementation of HiveAuthorizer. You can customize the behavior by passing different
@@ -41,6 +43,7 @@ import org.apache.sentry.binding.hive.v2.SentryHivePrivilegeObject;
  * {@link SentryHiveAuthorizationValidator} to constructor.
  */
 public class SentryHiveAuthorizer implements HiveAuthorizer {
+  private static final Logger LOG = LoggerFactory.getLogger(SentryHiveAuthorizer.class);
 
   private SentryHiveAccessController accessController;
   private SentryHiveAuthorizationValidator authValidator;
@@ -49,6 +52,7 @@ public class SentryHiveAuthorizer implements HiveAuthorizer {
 
   public SentryHiveAuthorizer(SentryHiveAccessController accessController,
       SentryHiveAuthorizationValidator authValidator) {
+    LOG.debug("create new sentry hive authorizer");
     this.accessController = accessController;
     this.authValidator = authValidator;
   }

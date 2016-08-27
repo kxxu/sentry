@@ -81,6 +81,7 @@ import com.google.common.collect.Sets;
 public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerHook {
   private static final Logger LOG = LoggerFactory
       .getLogger(HiveAuthzBindingHookBase.class);
+  private static final Logger AuditLog = LoggerFactory.getLogger("audit");
   protected final HiveAuthzBinding hiveAuthzBinding;
   protected final HiveAuthzConf authzConf;
   protected Database currDB = Database.ALL;
@@ -270,6 +271,8 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
       LOG.error("Error executing hook:", ex);
     }
   }
+
+
   /**
    * Convert the input/output entities into authorizables. generate
    * authorizables for cases like Database and metadata operations where the

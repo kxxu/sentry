@@ -53,6 +53,7 @@
         <include>NOTICE*</include>
         <include>README*</include>
         <include>dev-support/**</include>
+        <include>sentry-log/**</include>
         <include>sentry-binding/**</include>
         <include>sentry-core/**</include>
         <include>sentry-service/**</include>

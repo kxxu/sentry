@@ -67,7 +67,8 @@ limitations under the License.
     <derby.version>10.10.2.0</derby.version>
     <easymock.version>3.0</easymock.version>
     <fest.reflect.version>1.4.1</fest.reflect.version>
-    <guava.version>11.0.2</guava.version>
+    <!--<guava.version>11.0.2</guava.version>-->
+    <guava.version>18.0</guava.version>
     <hadoop.version>2.6.0</hadoop.version>
     <hamcrest.version>1.3</hamcrest.version>
     <hive-v2.version>2.0.0</hive-v2.version>
@@ -81,7 +82,9 @@ limitations under the License.
     <junit.version>4.10</junit.version>
     <libfb303.version>0.9.3</libfb303.version>
     <libthrift.version>0.9.3</libthrift.version>
-    <log4j.version>1.2.16</log4j.version>
+    <!--<log4j.version>1.2.16</log4j.version>-->
+    <log4j.version>2.4.1</log4j.version>
+    <distruptor.version>3.3.5</distruptor.version>
     <maven.antrun.plugin.version>1.7</maven.antrun.plugin.version>
     <maven.eclipse.plugin.version>2.9</maven.eclipse.plugin.version>
     <maven.enforcer.plugin.version>1.3.1</maven.enforcer.plugin.version>
@@ -102,6 +105,30 @@ limitations under the License.
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.lmax</groupId>
+        <artifactId>disruptor</artifactId>
+        <version>${distruptor.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+
+
+
+
       <dependency>
         <groupId>ant-contrib</groupId>
         <artifactId>ant-contrib</artifactId>
@@ -283,11 +310,11 @@ limitations under the License.
         <artifactId>fest-reflect</artifactId>
         <version>${fest.reflect.version}</version>
       </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>${log4j.version}</version>
-      </dependency>
+      <!--<dependency>-->
+        <!--<groupId>log4j</groupId>-->
+        <!--<artifactId>log4j</artifactId>-->
+        <!--<version>${log4j.version}</version>-->
+      <!--</dependency>-->
       <dependency>
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-core</artifactId>
@@ -383,6 +410,11 @@ limitations under the License.
         <groupId>org.apache.hive</groupId>
         <artifactId>hive-cli</artifactId>
         <version>${hive.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.sentry</groupId>
+        <artifactId>sentry-log</artifactId>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.sentry</groupId>
@@ -647,6 +679,7 @@ limitations under the License.
     <module>sentry-hdfs</module>
     <module>sentry-solr</module>
     <module>sentry-dist</module>
+    <module>sentry-log</module>
   </modules>
 
   <build>

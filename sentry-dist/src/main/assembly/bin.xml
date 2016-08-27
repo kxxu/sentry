@@ -39,6 +39,7 @@
       <useStrictFiltering>true</useStrictFiltering>
       <useTransitiveFiltering>true</useTransitiveFiltering>
       <excludes>
+        <exclude>log4j:*</exclude>
         <exclude>org.slf4j:*</exclude>
         <exclude>org.datanucleus:*</exclude>
         <exclude>org.apache.hive:hive-beeline</exclude>
@@ -93,6 +94,7 @@
         <exclude>**/.gitignore</exclude>
         <exclude>dev-support/**</exclude>
         <exclude>pom.xml</exclude>
+        <exclude>sentry-log/**</exclude>
         <exclude>sentry-binding/**</exclude>
         <exclude>sentry-core/**</exclude>
         <exclude>sentry-dist/**</exclude>

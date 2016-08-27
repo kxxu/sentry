@@ -35,6 +35,7 @@ import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.plan.DDLWork;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.session.SessionState;
+import org.apache.sentry.binding.AuditLog;
 import org.apache.sentry.binding.hive.HiveAuthzBindingHookBase;
 import org.apache.sentry.binding.hive.authz.HiveAuthzPrivileges;
 import org.apache.sentry.binding.hive.conf.HiveAuthzConf;
@@ -113,22 +114,22 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
       if (task instanceof DDLTask) {
         SentryFilterDDLTask filterTask =
             new SentryFilterDDLTask(hiveAuthzBinding, subject, stmtOperation);
-        LOG.info("sentry filter ddl task");
+        LOG.debug("sentry filter ddl task");
         filterTask.setWork((DDLWork)task.getWork());
         rootTasks.set(i, filterTask);
       }
     }
     //获取hive操作对应的sentry权限类型
     HiveAuthzPrivileges stmtAuthObject = HiveAuthzPrivilegesMapV2.getHiveAuthzPrivileges(stmtOperation);
-    LOG.info("sentry auth, statement type: " + stmtOperation + ", require privileges: " + stmtAuthObject);
+    LOG.debug("sentry auth, statement type: {}, require privileges: {}", stmtOperation,  stmtAuthObject);
     if (stmtOperation.equals(HiveOperation.CREATEFUNCTION)
         || stmtOperation.equals(HiveOperation.DROPFUNCTION)
         || stmtOperation.equals(HiveOperation.CREATETABLE)) {
       try {
         if (stmtAuthObject == null) {
           // We don't handle authorizing this statement
-          LOG.info("sentry do not authorizing this statement, statement type: " + stmtOperation + ", user: "
-                  + context.getUserName() + ", command: " + context.getCommand());
+          LOG.info("sentry do not authorizing this statement, statement type: {}, user: {}, command: {}",
+                  new Object[]{stmtOperation, context.getUserName(), context.getCommand()});
           return;
         }
         //使用sentry bingding进行权限验证
@@ -146,10 +147,11 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
         String msgForConsole =
             HiveAuthzConf.HIVE_SENTRY_PRIVILEGE_ERROR_MESSAGE + "\n " + e.getMessage();
         // AuthorizationException is not a real exception, use the info level to record this.
-        LOG.info(msgForLog);
-        LOG.info("sentry auth error: " + Throwables.getStackTraceAsString(e));
+        LOG.error(msgForLog);
+        LOG.error("sentry auth error: {}", Throwables.getStackTraceAsString(e));
         throw new SemanticException(msgForConsole, e);
       } finally {
+        AuditLog.logAuditEvent(context, stmtOperation);
         hiveAuthzBinding.close();
       }
     }

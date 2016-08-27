@@ -165,10 +165,10 @@ public class HiveAuthzConf extends Configuration {
 
   public HiveAuthzConf(URL hiveAuthzSiteURL) {
     super();
-    LOG.info("DefaultFS: " + super.get("fs.defaultFS"));
+    LOG.debug("DefaultFS: {}", super.get("fs.defaultFS"));
     addResource(hiveAuthzSiteURL);
     applySystemProperties();
-    LOG.info("DefaultFS: " + super.get("fs.defaultFS"));
+    LOG.info("DefaultFS: {}", super.get("fs.defaultFS"));
     this.hiveAuthzSiteFile = hiveAuthzSiteURL.toString();
   }
   /**

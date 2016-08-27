@@ -19,7 +19,7 @@ package org.apache.sentry.policy.common;
 
 import java.util.Set;
 
-import javax.annotation.concurrent.ThreadSafe;
+//import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.sentry.core.common.ActiveRoleSet;
 import org.apache.sentry.core.common.Authorizable;
@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableSet;
  * Implementations of this interface are expected to be thread safe
  * after construction.
  */
-@ThreadSafe
+//@ThreadSafe
 public interface PolicyEngine {
 
   /**

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -14,32 +15,21 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="info" packages="com.iflytek.log">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
-        <File name="file" fileName="test.log">
+        <File name="file" fileName="/usr/local/sentry/test.log">
             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </File>
-        <JDBCTable name="maple" tableName="filebrowser_hive_table" ignoreExceptions="true">
-            <ColumnDesc name="table_name" property="tableName"/>
-            <ColumnDesc name="project" property="project"/>
-            <ColumnDesc name="project_owner" property="createUser"/>
-            <ColumnDesc name="created_time" property="createdTime" handler="com.iflytek.log.DateTypeHandler"/>
-            <ColumnDesc name="table_description" property="tableDescription"/>
-        </JDBCTable>
     </Appenders>
     <Loggers>
         <Root level="INFO">
             <AppenderRef ref="Console" />
         </Root>
-        <Logger name="com.iflytek" level="INFO">
+        <Logger name="org.apache.sentry" level="DEBUG">
             <AppenderRef ref="file" />
-        </Logger>
-        <Logger name="jdbc" level="INFO">
-            <AppenderRef ref="maple" />
         </Logger>
     </Loggers>
 </Configuration>

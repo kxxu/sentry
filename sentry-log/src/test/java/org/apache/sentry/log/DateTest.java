@@ -16,16 +16,32 @@
  */
 package org.apache.sentry.log;
 
-import java.sql.Date;
-import java.sql.Timestamp;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by admin on 2016/8/26.
  */
 public class DateTest {
-    public static void main(String[] args) {
-        long time = System.currentTimeMillis();
-        Timestamp date = new Timestamp(time);
-        System.out.println(date);
+    public static void main(String[] args) throws Exception {
+        LoadingCache<String,String> cache = CacheBuilder.newBuilder().expireAfterWrite(2, TimeUnit.SECONDS)
+                                        .build(new CacheLoader<String, String>() {
+                                            @Override
+                                            public String load(String key) throws Exception {
+                                                return key + ": " + System.currentTimeMillis();
+                                            }
+                                        });
+        String value = cache.get("world");
+        System.out.println("value: " + value);
+        Thread.sleep(1 * 1000);
+        System.out.println("sleep 1s, value: " + cache.get("world"));
+        System.out.println(cache.get("world"));
+        Thread.sleep(1 * 1000);
+        System.out.println("sleep 2s, value: " + cache.get("world"));
     }
 }

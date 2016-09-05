@@ -57,6 +57,7 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
   @Override
   public ASTNode preAnalyze(HiveSemanticAnalyzerHookContext context, ASTNode ast)
       throws SemanticException {
+    LOG.debug("sentry auth pre, user: {}, command: {}", context.getUserName(), context.getCommand());
     switch (ast.getToken().getType()) {
     // Hive parser doesn't capture the database name in output entity, so we store it here for now
       case HiveParser.TOK_CREATEFUNCTION:
@@ -121,7 +122,8 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
     }
     //获取hive操作对应的sentry权限类型
     HiveAuthzPrivileges stmtAuthObject = HiveAuthzPrivilegesMapV2.getHiveAuthzPrivileges(stmtOperation);
-    LOG.debug("sentry auth, statement type: {}, require privileges: {}", stmtOperation,  stmtAuthObject);
+    LOG.debug("post hook,user: {}, command: {}", context.getUserName(), context.getCommand());
+//    AuditLog.logAuditEvent(hiveAuthzBinding.getAuthServer().getName(), context, stmtOperation);
     if (stmtOperation.equals(HiveOperation.CREATEFUNCTION)
         || stmtOperation.equals(HiveOperation.DROPFUNCTION)
         || stmtOperation.equals(HiveOperation.CREATETABLE)) {
@@ -151,10 +153,11 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
         LOG.error("sentry auth error: {}", Throwables.getStackTraceAsString(e));
         throw new SemanticException(msgForConsole, e);
       } finally {
-        AuditLog.logAuditEvent(context, stmtOperation);
         hiveAuthzBinding.close();
       }
     }
+    AuditLog.logAuditEvent(hiveAuthzBinding.getAuthServer().getName(), context, stmtOperation);
+
   }
 
 }

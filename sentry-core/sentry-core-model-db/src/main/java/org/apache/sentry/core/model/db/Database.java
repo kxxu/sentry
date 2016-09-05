@@ -16,7 +16,10 @@
  */
 package org.apache.sentry.core.model.db;
 
-public class Database implements DBModelAuthorizable {
+import com.google.common.base.Strings;
+
+public class
+Database implements DBModelAuthorizable {
 
   /**
    * Represents all databases
@@ -26,7 +29,11 @@ public class Database implements DBModelAuthorizable {
   private final String name;
 
   public Database(String name) {
-    this.name = name;
+    if (!Strings.isNullOrEmpty(name)) {
+      this.name = removeBackquote.removeFrom(name);
+    }else {
+      this.name = "";
+    }
   }
 
   @Override

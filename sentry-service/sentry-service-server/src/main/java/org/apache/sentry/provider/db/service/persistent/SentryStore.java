@@ -1404,7 +1404,9 @@ public class SentryStore {
       TSentryActiveRoleSet roleSet, TSentryAuthorizable authHierarchy) throws SentryInvalidInputException {
     Set<String> result = Sets.newHashSet();
     Set<String> rolesToQuery = getRolesToQuery(groups, users, roleSet);
+    LOGGER.debug("get role set, groups: {}, users: {}, roles: {}", new Object[]{groups, users, rolesToQuery});
     List<MSentryPrivilege> mSentryPrivileges = getMSentryPrivileges(rolesToQuery, authHierarchy);
+    LOGGER.debug("get role privileges, role set: {}, privileges: {}", rolesToQuery, mSentryPrivileges);
     for (MSentryPrivilege priv : mSentryPrivileges) {
       result.add(toAuthorizable(priv));
     }

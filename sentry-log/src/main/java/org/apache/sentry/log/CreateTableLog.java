@@ -23,15 +23,15 @@ import com.google.common.base.Throwables;
 /**
  * Created by admin on 2016/8/25.
  */
-public class CreateTableLog {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+public class CreateTableLog extends HiveTableLog{
     private final String tableName;
     private final String project;
     private final String createUser;
     private final String tableDescription;
     private final long createdTime;
 
-    public CreateTableLog(String tableName, String project, String createUser, String tableDescription, long createdTime) {
+    public CreateTableLog(String queryId, String tableName, String project, String createUser, String tableDescription, long createdTime) {
+        this.queryId = queryId;
         this.tableName = tableName;
         this.project = project;
         this.createUser = createUser;
@@ -69,6 +69,7 @@ public class CreateTableLog {
             return objectMapper.writeValueAsString(this);
         } catch (Exception ex) {
             System.out.println(MoreObjects.toStringHelper(this)
+                    .add("queryId", queryId)
                     .add("tableName", tableName)
                     .add("project", project)
                     .add("createUser", createUser)
@@ -80,10 +81,16 @@ public class CreateTableLog {
         return null;
     }
     public static class Builder{
+        private String queryId;
         private String tableName;
         private String project;
         private String createUser;
         private String tableDescription;
+
+        public Builder setQueryId(String queryId) {
+            this.queryId = queryId;
+            return this;
+        }
 
         public String getTableName() {
             return tableName;
@@ -122,7 +129,7 @@ public class CreateTableLog {
         }
 
         public CreateTableLog build() {
-            return new CreateTableLog(tableName, project, createUser, tableDescription, System.currentTimeMillis());
+            return new CreateTableLog(queryId, tableName, project, createUser, tableDescription, System.currentTimeMillis());
         }
     }
 }

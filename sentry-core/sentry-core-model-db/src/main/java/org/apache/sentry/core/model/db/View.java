@@ -16,6 +16,8 @@
  */
 package org.apache.sentry.core.model.db;
 
+import com.google.common.base.Strings;
+
 public class View implements TableOrView {
 
   /**
@@ -26,7 +28,11 @@ public class View implements TableOrView {
   private final String name;
 
   public View(String name) {
-    this.name = name;
+    if (!Strings.isNullOrEmpty(name)) {
+      this.name = removeBackquote.removeFrom(name);
+    } else {
+      this.name = "";
+    }
   }
 
   @Override

@@ -16,6 +16,8 @@
  */
 package org.apache.sentry.core.model.db;
 
+import com.google.common.base.Strings;
+
 public class Column implements DBModelAuthorizable {
 
   /**
@@ -28,7 +30,11 @@ public class Column implements DBModelAuthorizable {
   private final String name;
 
   public Column(String name) {
-    this.name = name;
+    if (!Strings.isNullOrEmpty(name)) {
+      this.name = removeBackquote.removeFrom(name);
+    } else {
+      this.name = "";
+    }
   }
 
   @Override

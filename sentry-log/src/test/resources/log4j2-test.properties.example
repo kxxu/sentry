@@ -1,0 +1,53 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+packages=org.apache.sentry.log.appender
+appenders=jdbc,Console
+
+appender.Console.type=Console
+appender.Console.name=Console
+
+
+appender.jdbc.type=JDBCTable
+appender.jdbc.name=jdbc
+appender.jdbc.tableName=filebrowser_hive_table
+appender.jdbc.ignoreExceptions=true
+appender.jdbc.table_name.name=table_name
+appender.jdbc.table_name.type=ColumnDesc
+appender.jdbc.table_name.property=tableName
+appender.jdbc.project.name=project
+appender.jdbc.project.type=ColumnDesc
+appender.jdbc.project.property=project
+appender.jdbc.project_owner.name=project_owner
+appender.jdbc.project_owner.type=ColumnDesc
+appender.jdbc.project_owner.property=createUser
+appender.jdbc.created_time.name=created_time
+appender.jdbc.created_time.type=ColumnDesc
+appender.jdbc.created_time.property=createdTime
+appender.jdbc.created_time.handler=org.apache.sentry.log.handler.DateTypeHandler
+appender.jdbc.table_description.name=table_description
+appender.jdbc.table_description.type=ColumnDesc
+appender.jdbc.table_description.property=tableDescription
+
+loggers=test
+rootLogger.level=INFO
+rootLogger.appenderRefs=root
+rootLogger.appenderRef.root.ref=Console
+
+logger.test.name=test
+logger.test.level=DEBUG
+logger.test.appenderRefs=jdbc
+logger.test.appenderRef.jdbc.ref=jdbc

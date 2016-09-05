@@ -18,7 +18,7 @@
 bin=`dirname "$0"`
 myhome=`cd "$bin/.."; pwd`
 RUN_CONFIG_TOOL=0
-SENTRY_OPTS = "-Dlog4j.configurationFile=sentry-log4j2.xml"
+SENTRY_OPTS = " -Dlog4j.configurationFile=sentry-log4j2.xml "
 
 # the root of the Hive installation
 if [[ -z $SENTRY_HOME ]] ; then
@@ -64,9 +64,14 @@ done
 HADOOP_CLASSPATH=${SENTRY_HOME}/conf:${HADOOP_CLASSPATH}
 export _CMD_JAR=sentry-core-common-*.jar
 for f in ${SENTRY_HOME}/lib/*.jar; do
-  HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${f}
+#  HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${f}
+  CLASSPATH=${f}:${CLASSPATH}
 done
+HADOOP_CLASSPATH=${SENTRY_HOME}/lib/*:${SENTRY_HOME}/conf
+HADOOP_OPTS=" ${SENTRY_OPTS} ${HADOOP_OPTS}"
+export HADOOP_USER_CLASSPATH_FIRST=true
 export HADOOP_CLASSPATH
+export HADOOP_OPTS
 export RUN_CONFIG_TOOL
 if [ "${RUN_CONFIG_TOOL}" = "0" ]
 then
@@ -76,7 +81,7 @@ then
   for f in ${SENTRY_HOME}/lib/plugins/*.jar; do
     HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${f}
   done
-  exec $HADOOP jar ${SENTRY_HOME}/lib/${_CMD_JAR} ${SENTRY_OPTS} org.apache.sentry.SentryMain ${args[@]}
+  exec $HADOOP jar ${SENTRY_HOME}/lib/${_CMD_JAR} org.apache.sentry.SentryMain ${args[@]}
 else
   exec ${SENTRY_HOME}/bin/config_tool ${args[@]}
 fi

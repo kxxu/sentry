@@ -23,9 +23,12 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.GroupMappingServiceProvider;
 import org.apache.hadoop.security.Groups;
 
 import com.google.common.collect.Lists;
+import org.apache.hadoop.security.LdapGroupsMapping;
+import org.apache.hadoop.security.ShellBasedUnixGroupsMapping;
 import org.apache.sentry.core.common.exception.SentryGroupNotFoundException;
 
 public class HadoopGroupMappingService implements GroupMappingService {
@@ -50,7 +53,12 @@ public class HadoopGroupMappingService implements GroupMappingService {
         }
       }
     }
+    System.out.println("group name: " + conf.getClass("hadoop.security.group.mapping",
+            ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
+//    conf.setClass("hadoop.security.group.mapping", LdapGroupsMapping.class, GroupMappingServiceProvider.class);
     this.groups = Groups.getUserToGroupsMappingService(hadoopConf);
+    System.out.println("group name: " + conf.getClass("hadoop.security.group.mapping",
+            ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
   }
 
   @Override

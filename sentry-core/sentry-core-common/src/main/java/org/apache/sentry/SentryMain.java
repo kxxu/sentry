@@ -22,7 +22,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.log4j.PropertyConfigurator;
+//import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +83,7 @@ public class SentryMain {
         }
       }
 
-      PropertyConfigurator.configure(log4jProperties);
+//      PropertyConfigurator.configure(log4jProperties);
       Logger sentryLogger = LoggerFactory.getLogger(SentryMain.class);
       sentryLogger.info("Configuring log4j to use [" + log4jconf + "]");
     }

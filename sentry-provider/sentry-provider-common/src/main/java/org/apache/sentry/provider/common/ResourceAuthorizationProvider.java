@@ -105,8 +105,11 @@ public abstract class ResourceAuthorizationProvider implements AuthorizationProv
       hierarchy.add(KV_JOINER.join(authorizable.getTypeName(), authorizable.getName()));
     }
     List<String> requestPrivileges = buildPermissions(authorizables, actions);
+    LOGGER.debug("get privileges args, groups: {}, users: {}, role set: {}, authorizables: {}",
+            new Object[]{groups, users, roleSet, authorizables.toArray(new Authorizable[0])});
     Iterable<Privilege> privileges = getPrivileges(groups, users, roleSet,
         authorizables.toArray(new Authorizable[0]));
+
     lastFailedPrivileges.get().clear();
 
     for (String requestPrivilege : requestPrivileges) {

@@ -790,8 +790,9 @@ public class SentryPolicyStoreProcessor implements SentryPolicyService.Iface {
           sentryStore.listSentryPrivilegesForProvider(request.getGroups(), request.getUsers(),
               request.getRoleSet(), request.getAuthorizableHierarchy());
       response.setPrivileges(privilegesForProvider);
-      if (privilegesForProvider == null
-          || privilegesForProvider.size() == 0
+      LOGGER.debug("request: {}, get privileges: {}", request, privilegesForProvider);
+      if ((privilegesForProvider == null
+          || privilegesForProvider.size() == 0)
           && request.getAuthorizableHierarchy() != null
           && sentryStore.hasAnyServerPrivileges(request.getGroups(), request.getUsers(),
               request.getRoleSet(), request.getAuthorizableHierarchy().getServer())) {

@@ -33,7 +33,7 @@ public class ConnectionPool {
     }
 
     static {
-        dataSource = new ComboPooledDataSource("default");
+        dataSource = new ComboPooledDataSource();
     }
 
     public static Connection getConnection() throws SQLException {

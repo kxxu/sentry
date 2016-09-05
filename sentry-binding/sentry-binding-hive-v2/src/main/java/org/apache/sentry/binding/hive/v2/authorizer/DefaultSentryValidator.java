@@ -33,6 +33,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HiveOperationType
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject;
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.session.SessionState;
+import org.apache.sentry.binding.AuditLog;
 import org.apache.sentry.binding.hive.SentryOnFailureHookContext;
 import org.apache.sentry.binding.hive.SentryOnFailureHookContextImpl;
 import org.apache.sentry.binding.hive.authz.HiveAuthzBinding;
@@ -183,6 +184,8 @@ public class DefaultSentryValidator extends SentryHiveAuthorizationValidator {
 
       hiveAuthzBinding.authorize(hiveOp, stmtAuthPrivileges,
           new Subject(authenticator.getUserName()), inputHierarchyList, outputHierarchyList);
+      AuditLog.logAuditLog(hiveOpType, inputHObjs, outputHObjs, context,
+              hiveAuthzBinding.getAuthServer().getName(), authenticator.getUserName());
     } catch (AuthorizationException e) {
       Database db = null;
       Table tab = null;

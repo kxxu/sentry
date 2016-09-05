@@ -290,7 +290,7 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
     Set<WriteEntity> outputs = context.getOutputs();
     List<List<DBModelAuthorizable>> inputHierarchy = new ArrayList<List<DBModelAuthorizable>>();
     List<List<DBModelAuthorizable>> outputHierarchy = new ArrayList<List<DBModelAuthorizable>>();
-
+    LOG.debug("auth binding before debug");
     if(LOG.isDebugEnabled()) {
       LOG.debug("stmtAuthObject.getOperationScope() = " + stmtAuthObject.getOperationScope());
       LOG.debug("context.getInputs() = " + context.getInputs());
@@ -454,6 +454,8 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
       // Will use the original hiveAuthzBinding
       binding = hiveAuthzBinding;
     }
+    LOG.debug("auth binding, user: {}, command: {}, input hierarchy: {}, output hierarchy: {}", new Object[]{context.getUserName(),
+            context.getCommand(), inputHierarchy, outputHierarchy});
     // validate permission
     binding.authorize(stmtOperation, stmtAuthObject, getCurrentSubject(context), inputHierarchy,
         outputHierarchy);

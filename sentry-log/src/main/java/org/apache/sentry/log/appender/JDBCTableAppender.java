@@ -18,7 +18,6 @@ package org.apache.sentry.log.appender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.core.Filter;
-import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.appender.AppenderLoggingException;
@@ -29,9 +28,9 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.sentry.log.appender.db.jdbc.ColumnDesc;
 import org.apache.sentry.log.util.ConnectionPool;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 import java.util.Map;
 
 /**
@@ -51,61 +50,45 @@ public class JDBCTableAppender extends AbstractAppender {
     private String description;
     Connection con;
     private ObjectMapper objectMapper = new ObjectMapper();
+    private String deleteSql = "delete from filebrowser_hive_table where table_name=? and project=?";
 
-    public JDBCTableAppender() {
-        super("", null, null);
-        String url="jdbc:mysql://172.16.154.120:3306/hueDB?user=root&password=iflytek";
-        try {
-            con = DriverManager.getConnection(url);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
     protected JDBCTableAppender(String name, String tableName, ColumnDesc[] columnConfig, Filter filter, boolean ignoreException) {
         super(name, filter, null, ignoreException);
         this.columnConfig = columnConfig;
         sqlStr = parseSql(tableName);
-        System.out.println("write sql str: " + sqlStr);
     }
 
     @Override
     public void append(LogEvent logEvent) {
         try {
-            System.out.println("append log event: " +  logEvent);
+            logEvent.getMessage().getFormattedMessage();
             String event = logEvent.getMessage().getFormattedMessage();
-            statement = ConnectionPool.getConnection().prepareStatement(sqlStr);
+                        LOGGER.info("get event: {}", event);
             Map<String, String> eventMap = objectMapper.readValue(event, Map.class);
-            for (int i = 0; i < columnConfig.length; i++) {
-                columnConfig[i].setStatementValue(statement, i + 1, eventMap.get(columnConfig[i].getProperty()));
+            try (Connection connection = ConnectionPool.getConnection()){
+                if ("drop".equalsIgnoreCase(eventMap.get("tableDescription"))) {
+                    statement = connection.prepareStatement(deleteSql);
+                    statement.setString(1, eventMap.get("tableName"));
+                    statement.setString(2, eventMap.get("project"));
+                } else {
+                    statement = connection.prepareStatement(sqlStr);
+                    for (int i = 0; i < columnConfig.length; i++) {
+                        columnConfig[i].setStatementValue(statement, i + 1, eventMap.get(columnConfig[i].getProperty()));
+                    }
+                }
+                statement.execute();
             }
-            statement.execute();
-//            Log.info("statement execute: {}", statement);
         } catch (Exception ex) {
             throw new AppenderLoggingException("Failed to insert record for log event in JDBC manager: " + ex.getMessage(), ex);
         }
-    }
-
-    public void writeDB(String json) throws Exception {
-        String sql = "insert into filebrowser_hive_table( `table_name`,project,project_owner,created_time,table_description ) values ( ?,?,?,?,? )";
-        statement = con.prepareStatement(sql);
-        Map<String, Object> eventMap = objectMapper.readValue(json, Map.class);
-
-        statement.setString(1, eventMap.get("tableName").toString());
-        statement.setString(2, eventMap.get("project").toString());
-        statement.setString(3, eventMap.get("createUser").toString());
-        statement.setString(5, eventMap.get("tableDescription").toString());
-        statement.setTimestamp(4, new Timestamp((Long) eventMap.get("createdTime")));
-        statement.execute();
-        System.out.println("write " + json + " to db");
     }
 
     @PluginFactory
     public static JDBCTableAppender createAppender(@PluginAttribute("name") String name, @PluginAttribute("ignoreExceptions") String ignore,
                                                    @PluginElement("Filter") Filter filter, @PluginAttribute("tableName")String tableName,
                                                    @PluginElement("ColumnConfigs")ColumnDesc[] columnConfig) {
-        System.out.println("create jdbc appender");
-//        Log.info("create jdbc appender");
         return new JDBCTableAppender(name, tableName, columnConfig, filter, Boolean.getBoolean(ignore));
     }
 

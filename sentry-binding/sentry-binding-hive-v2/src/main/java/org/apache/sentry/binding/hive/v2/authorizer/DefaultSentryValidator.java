@@ -140,7 +140,7 @@ public class DefaultSentryValidator extends SentryHiveAuthorizationValidator {
    * @param inputHObjs
    * @param outputHObjs
    * @param context
-   * @throws SentryAccessControlException
+   * @throws HiveAuthzPluginException,HiveAccessControlException
    */
   @Override
   public void checkPrivileges(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,

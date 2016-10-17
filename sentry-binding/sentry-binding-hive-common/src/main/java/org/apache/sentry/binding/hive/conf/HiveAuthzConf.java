@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,6 +254,7 @@ public class HiveAuthzConf extends Configuration {
     }
 
     try {
+//      URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
       return new HiveAuthzConf(new URL(hiveAuthzConf));
     } catch (MalformedURLException e) {
       if (depreicatedConfigFile) {

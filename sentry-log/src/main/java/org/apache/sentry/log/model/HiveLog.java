@@ -30,6 +30,8 @@ import java.sql.Timestamp;
 public class HiveLog {
     @NotPersistent
     private String queryId;
+    @NotPersistent
+    private String operation;
     private String tableName;
     private String project;
     private String user;
@@ -107,6 +109,15 @@ public class HiveLog {
         return this;
     }
 
+    public String getOperation() {
+        return operation;
+    }
+
+    public HiveLog setOperation(String operation) {
+        this.operation = operation;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -125,10 +136,12 @@ public class HiveLog {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("queryId", queryId)
+                .add("operation", operation)
                 .add("tableName", tableName)
                 .add("project", project)
                 .add("user", user)
                 .add("server", server)
+                .add("create time", createdTime)
                 .add("description", description)
                 .toString();
     }
@@ -139,6 +152,7 @@ public class HiveLog {
         private String user;
         private String server;
         private String description;
+        private String operation;
 
         public Builder setQueryId(String queryId) {
             this.queryId = queryId;
@@ -170,13 +184,15 @@ public class HiveLog {
             return this;
         }
 
+        public Builder setOperation(String operation) {
+            this.operation = operation;
+            return this;
+        }
 
         public HiveLog build() {
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             HiveLog log = new HiveLog(tableName, project, user, server);
-            log.setQueryId(queryId);
-            log.setServer(server);
-            log.setCreatedTime(timestamp);
+            log.setQueryId(queryId).setServer(server).setOperation(operation).setCreatedTime(timestamp);
             return log;
         }
     }

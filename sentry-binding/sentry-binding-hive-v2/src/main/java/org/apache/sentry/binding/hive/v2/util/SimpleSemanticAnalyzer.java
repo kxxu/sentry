@@ -33,6 +33,8 @@ public class SimpleSemanticAnalyzer {
   private String currentDb;
   private String currentTb;
 
+  private static final String EXPLAIT_REGEX = "^EXPLAIN\\s+";
+
   /**
    * CREATE [TEMPORARY] [EXTERNAL] TABLE [IF NOT EXISTS] [db_name.]table_name ...
    */
@@ -60,14 +62,14 @@ public class SimpleSemanticAnalyzer {
   /**
    * DESCRIBE DATABASE|SCHEMA [EXTENDED] db_name;
    */
-  private static final String DESCRIBE_DB_REGEX = "^DESCRIBE\\s+" + "(DATABASE|SCHEMA)\\s+"
+  private static final String DESCRIBE_DB_REGEX = "^(DESC|DESCRIBE)\\s+" + "(DATABASE|SCHEMA)\\s+"
       + "(EXTENDED\\s+)?" + "([A-Za-z0-9_]+)";
 
   /**
    * DESCRIBE [EXTENDED|FORMATTED] [db_name.]table_name[.col_name ( [.field_name] | [.'$elem$'] |
    * [.'$key$'] | [.'$value$'] )* ];
    */
-  private static final String DESCRIBE_TABLE_REGEX = "^DESCRIBE\\s+"
+  private static final String DESCRIBE_TABLE_REGEX = "^(DESC|DESCRIBE)\\s+"
       + "((EXTENDED|FORMATTED)\\s+)?" + "([A-Za-z0-9._]+)";
 
   /**
@@ -200,7 +202,14 @@ public class SimpleSemanticAnalyzer {
 
   public SimpleSemanticAnalyzer(HiveOperation hiveOp, String cmd) throws HiveAuthzPluginException {
     currentDb = SessionState.get().getCurrentDatabase();
-    parse(hiveOp, cmd);
+//    parse(hiveOp, cmd);
+    parse(hiveOp, trimCmd(cmd));
+  }
+
+  private String trimCmd(String cmd) {
+    Pattern pattern = Pattern.compile(EXPLAIT_REGEX, Pattern.CASE_INSENSITIVE);
+    Matcher matcher = pattern.matcher(cmd);
+    return matcher.find() ? matcher.replaceFirst("") : cmd;
   }
 
   private void parse(HiveOperation hiveOp, String cmd) throws HiveAuthzPluginException {

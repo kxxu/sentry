@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Throwables;
 import org.apache.sentry.core.common.Action;
 import org.apache.sentry.core.common.ActiveRoleSet;
 import org.apache.sentry.core.common.Authorizable;
@@ -98,37 +99,40 @@ public abstract class ResourceAuthorizationProvider implements AuthorizationProv
   private boolean doHasAccess(Subject subject,
       List<? extends Authorizable> authorizables, Set<? extends Action> actions,
       ActiveRoleSet roleSet) {
-    Set<String> groups =  getGroups(subject);
-    Set<String> users = Sets.newHashSet(subject.getName());
-    Set<String> hierarchy = new HashSet<String>();
-    for (Authorizable authorizable : authorizables) {
-      hierarchy.add(KV_JOINER.join(authorizable.getTypeName(), authorizable.getName()));
-    }
     List<String> requestPrivileges = buildPermissions(authorizables, actions);
-    LOGGER.debug("get privileges args, groups: {}, users: {}, role set: {}, authorizables: {}",
-            new Object[]{groups, users, roleSet, authorizables.toArray(new Authorizable[0])});
-    Iterable<Privilege> privileges = getPrivileges(groups, users, roleSet,
-        authorizables.toArray(new Authorizable[0]));
+    try {
+      Set<String> groups = getGroups(subject);
+      Set<String> users = Sets.newHashSet(subject.getName());
+      Set<String> hierarchy = new HashSet<String>();
+      for (Authorizable authorizable : authorizables) {
+        hierarchy.add(KV_JOINER.join(authorizable.getTypeName(), authorizable.getName()));
+      }
+      LOGGER.debug("get privileges args, groups: {}, users: {}, role set: {}, authorizables: {}",
+              new Object[]{groups, users, roleSet, authorizables.toArray(new Authorizable[0])});
+      Iterable<Privilege> privileges = getPrivileges(groups, users, roleSet,
+              authorizables.toArray(new Authorizable[0]));
 
-    lastFailedPrivileges.get().clear();
+      lastFailedPrivileges.get().clear();
 
-    for (String requestPrivilege : requestPrivileges) {
-      Privilege priv = privilegeFactory.createPrivilege(requestPrivilege);
-      for (Privilege permission : privileges) {
+      for (String requestPrivilege : requestPrivileges) {
+        Privilege priv = privilegeFactory.createPrivilege(requestPrivilege);
+        for (Privilege permission : privileges) {
         /*
          * Does the permission granted in the policy file imply the requested action?
          */
-        boolean result = permission.implies(priv, model);
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("ProviderPrivilege {}, RequestPrivilege {}, RoleSet, {}, Result {}",
-              new Object[]{ permission, requestPrivilege, roleSet, result});
-        }
-        if (result) {
-          return true;
+          boolean result = permission.implies(priv, model);
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("ProviderPrivilege {}, RequestPrivilege {}, RoleSet, {}, Result {}",
+                    new Object[]{permission, requestPrivilege, roleSet, result});
+          }
+          if (result) {
+            return true;
+          }
         }
       }
+    } catch (Exception ex) {
+      LOGGER.error("sentry auth privilege error: {}", Throwables.getStackTraceAsString(ex));
     }
-
     lastFailedPrivileges.get().addAll(requestPrivileges);
     return false;
   }

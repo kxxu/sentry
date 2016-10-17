@@ -35,7 +35,7 @@
             <index name="PRIVILEGE_INDEX" unique="true">
                 <field name="tableName" />
                 <field name="project" />
-                <!--<field name="server" />-->
+                <field name="server" />
             </index>
             <field name="tableName" >
                 <column name="table_name" jdbc-type="VARCHAR" position="1"/>
@@ -43,11 +43,8 @@
             <field name="project">
                 <column name="project" jdbc-type="VARCHAR" position="2"/>
             </field>
-            <!--<field name="user">-->
-                <!--<column name="create_user" jdbc-type="VARCHAR" position="3"/>-->
-            <!--</field>-->
             <field name="user">
-                <column name="project_owner" position="3"/>
+                <column name="create_user" jdbc-type="VARCHAR" position="3"/>
             </field>
             <field name="server">
                 <column name="cluster" position="6"/>

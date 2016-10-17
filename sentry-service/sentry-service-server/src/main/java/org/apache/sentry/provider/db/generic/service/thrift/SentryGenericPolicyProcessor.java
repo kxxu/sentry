@@ -66,7 +66,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-public class SentryGenericPolicyProcessor implements SentryGenericPolicyService.Iface {
+public class
+SentryGenericPolicyProcessor implements SentryGenericPolicyService.Iface {
   private static final Logger LOGGER = LoggerFactory.getLogger(SentryGenericPolicyProcessor.class);
   private static final Logger AUDIT_LOGGER = LoggerFactory
       .getLogger(Constants.AUDIT_LOGGER_NAME_GENERIC);

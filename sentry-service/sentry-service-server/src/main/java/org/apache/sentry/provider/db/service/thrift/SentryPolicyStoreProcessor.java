@@ -271,6 +271,7 @@ public class SentryPolicyStoreProcessor implements SentryPolicyService.Iface {
     TAlterSentryRoleGrantPrivilegeResponse response = new TAlterSentryRoleGrantPrivilegeResponse();
     try {
       validateClientVersion(request.getProtocol_version());
+      LOGGER.debug("alter sentry role privilege: {}", request);
       // There should only one field be set
       if ( !(request.isSetPrivileges()^request.isSetPrivilege()) ) {
         throw new SentryUserException("SENTRY API version is not right!");
@@ -804,6 +805,7 @@ public class SentryPolicyStoreProcessor implements SentryPolicyService.Iface {
         // For the specific AuthorizableHierarchy.. he has privilege on
         // atleast 1 object in the server hierarchy
         HashSet<String> serverPriv = Sets.newHashSet("server=+");
+        LOGGER.warn("set user privileges server=+");
         response.setPrivileges(serverPriv);
       }
       response.setStatus(Status.OK());

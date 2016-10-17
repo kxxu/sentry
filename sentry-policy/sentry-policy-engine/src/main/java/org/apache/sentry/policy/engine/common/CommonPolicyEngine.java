@@ -28,7 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
-public class CommonPolicyEngine implements PolicyEngine {
+public class
+CommonPolicyEngine implements PolicyEngine {
 
   private static final Logger LOGGER = LoggerFactory
           .getLogger(CommonPolicyEngine.class);

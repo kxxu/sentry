@@ -48,6 +48,8 @@ import org.apache.sentry.binding.hive.conf.HiveAuthzConf.AuthzConfVars;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /***
  * This class is the wrapper of ObjectStore which is the interface between the
@@ -61,6 +63,7 @@ import com.google.common.collect.Sets;
  * access.
  */
 public class AuthorizingObjectStoreV2 extends ObjectStore {
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizingObjectStoreV2.class);
   private static ImmutableSet<String> serviceUsers;
   private static HiveConf hiveConf;
   private static HiveAuthzConf authzConf;
@@ -70,6 +73,7 @@ public class AuthorizingObjectStoreV2 extends ObjectStore {
 
   @Override
   public List<String> getDatabases(String pattern) throws MetaException {
+    LOGGER.debug("sentry object store filter show database");
     return filterDatabases(super.getDatabases(pattern));
   }
 
@@ -298,7 +302,7 @@ public class AuthorizingObjectStoreV2 extends ObjectStore {
   /**
    * Invoke Hive table filtering that removes the entries which use has no
    * privileges to access
-   * @param dbList
+   * @param tabList
    * @return
    * @throws MetaException
    */

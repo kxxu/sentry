@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.GroupMappingServiceProvider;
@@ -30,8 +31,11 @@ import com.google.common.collect.Lists;
 import org.apache.hadoop.security.LdapGroupsMapping;
 import org.apache.hadoop.security.ShellBasedUnixGroupsMapping;
 import org.apache.sentry.core.common.exception.SentryGroupNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HadoopGroupMappingService implements GroupMappingService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(HadoopGroupMappingService.class);
 
   private static Configuration hadoopConf;
   private final Groups groups;
@@ -53,25 +57,36 @@ public class HadoopGroupMappingService implements GroupMappingService {
         }
       }
     }
-    System.out.println("group name: " + conf.getClass("hadoop.security.group.mapping",
+    LOGGER.info("group class name: {}", conf.get("hadoop.security.group.mapping"));
+    LOGGER.info("group name: {}", conf.getClass("hadoop.security.group.mapping",
             ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
 //    conf.setClass("hadoop.security.group.mapping", LdapGroupsMapping.class, GroupMappingServiceProvider.class);
     this.groups = Groups.getUserToGroupsMappingService(hadoopConf);
+    LOGGER.info("ldap url: {}", hadoopConf.get("hadoop.security.group.mapping.ldap.url"));
     System.out.println("group name: " + conf.getClass("hadoop.security.group.mapping",
             ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
   }
 
   @Override
   public Set<String> getGroups(String user) {
-    List<String> groupList = Lists.newArrayList();
+    List<String> groupList = null;
     try {
       groupList = groups.getGroups(user);
     } catch (IOException e) {
-      throw new SentryGroupNotFoundException("Unable to obtain groups for " + user, e);
+      if (e.getMessage() != null && e.getMessage().contains("No groups found for user")) {
+          LOGGER.error("sentry group service got IOException: {}", Throwables.getStackTraceAsString(e));
+      } else {
+          LOGGER.error("sentry got IOException, message: {}", e.getMessage());
+          throw new SentryGroupNotFoundException("Unable to obtain groups for " + user, e);
+      }
     }
-    if (groupList == null || groupList.isEmpty()) {
-      throw new SentryGroupNotFoundException("Unable to obtain groups for " + user);
+    if (groupList == null) {
+      groupList = Lists.newArrayList();
+      LOGGER.warn("sentry unable to obtain groups for {}", user);
     }
+//    if (groupList == null || groupList.isEmpty()) {
+//      throw new SentryGroupNotFoundException("Unable to obtain groups for " + user);
+//    }
     return new HashSet<String>(groupList);
   }
 }

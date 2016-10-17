@@ -161,7 +161,7 @@ public class SentryAuthorizerUtil {
   /**
    * Convert HiveOperationType to HiveOperation
    *
-   * @param type
+   * @param typeName
    */
   public static HiveOperation convert2HiveOperation(String typeName) {
     try {
@@ -187,7 +187,7 @@ public class SentryAuthorizerUtil {
   /**
    * Convert Sentry Action to HivePrivilege
    *
-   * @param hivePrivilege
+   * @param action
    */
   public static HivePrivilege convert2HivePrivilege(String action) {
     return new HivePrivilege(action, null);
@@ -264,8 +264,11 @@ public class SentryAuthorizerUtil {
           throw new RuntimeException(uriString + "is not a URI");
         }
       default:
-        LOG.warn("Unknown PrivilegeScope: "
-            + PrivilegeScope.valueOf(tSentryPrivilege.getPrivilegeScope()));
+//        LOG.warn("Unknown PrivilegeScope: "
+//            + PrivilegeScope.valueOf(tSentryPrivilege.getPrivilegeScope()));
+        LOG.warn("Unknown PrivilegeScope: {}, privilege: {}",
+                PrivilegeScope.valueOf(tSentryPrivilege.getPrivilegeScope()),
+                tSentryPrivilege);
         break;
     }
     return privilege;
@@ -273,12 +276,20 @@ public class SentryAuthorizerUtil {
 
   public static boolean isLocalUri(String uriString) throws URISyntaxException {
     URI uri = new URI(uriString);
-    if (uri.getScheme().equalsIgnoreCase("file")) {
+    LOG.debug("uriString: {}, uri: {}, uri schema: {}", new Object[]{uriString, uri, uri.getScheme()});
+    if ("file".equalsIgnoreCase(uri.getScheme())) {
       return true;
     }
-
     return false;
   }
+
+    public static String getUriString(String uriString, String defaultFs) throws URISyntaxException {
+        URI uri = new URI(uriString);
+        if (uri.getScheme() == null) {
+            return defaultFs + "/" + uriString;
+        }
+        return uriString;
+    }
 
   /**
    * Convert TSentryRole to HiveRoleGrant
@@ -299,9 +310,9 @@ public class SentryAuthorizerUtil {
   /**
    * Execute on failure hooks for e2e tests
    *
-   * @param context
+   * @param hookCtx
    * @param conf
-   * @param hiveOp
+   * @param conf
    */
   public static void executeOnFailureHooks(SentryOnFailureHookContext hookCtx, Configuration conf) {
     String csHooks =
@@ -321,7 +332,7 @@ public class SentryAuthorizerUtil {
    *
    * See getHooks(HiveAuthzConf.AuthzConfVars hookConfVar, Class<T> clazz)
    *
-   * @param hookConfVar
+   * @param csHooks
    * @return
    * @throws Exception
    */
@@ -333,7 +344,7 @@ public class SentryAuthorizerUtil {
    * Returns the hooks specified in a configuration variable. The hooks are returned in a list in
    * the order they were specified in the configuration variable.
    *
-   * @param hookConfVar The configuration variable specifying a comma separated list of the hook
+   * @param csHooks The configuration variable specifying a comma separated list of the hook
    *        class names.
    * @param clazz The super type of the hooks.
    * @return A list of the hooks cast as the type specified in clazz, in the order they are listed

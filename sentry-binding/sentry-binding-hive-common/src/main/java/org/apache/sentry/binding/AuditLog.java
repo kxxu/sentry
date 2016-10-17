@@ -16,6 +16,8 @@
  */
 package org.apache.sentry.binding;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Sets;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.hooks.Entity;
 import org.apache.hadoop.hive.ql.hooks.ReadEntity;
@@ -33,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by admin on 2016/8/24.
@@ -40,8 +43,10 @@ import java.util.List;
 public class AuditLog {
     private static final Logger AuditLogger = LoggerFactory.getLogger("audit");
     private static final Logger HiveJdbcLogger = LoggerFactory.getLogger("hivelog");
+    private static final Logger HiveLogLogger = LoggerFactory.getLogger("tablelog");
     private static final Logger Log = LoggerFactory.getLogger(AuditLog.class);
     private static final String EntitySplitter= ";";
+    private static final Joiner EntityJoiner = Joiner.on(";").skipNulls();
     private AuditLog(){}
 
     public static void logAuditEvent(String serverName, HiveSemanticAnalyzerHookContext context, HiveOperation operation) {
@@ -50,68 +55,69 @@ public class AuditLog {
         Log.debug("query id:{}, user:{}, operation: {}, input: {}, output: {}, command: {}", new Object[]{
                 queryId,context.getUserName(), operation, context.getInputs(),
                 context.getOutputs(), context.getCommand()});
-        StringBuilder stringBuilder = new StringBuilder();
+        Set<String> src = Sets.newHashSet();
         for (ReadEntity readEntity : context.getInputs()) {
             if (isChildTabForView(readEntity) || isDummyEntity(readEntity)) {
                 continue;
             }
-            stringBuilder.append(readEntity.getDatabase());
             if (readEntity.getTable() != null) {
-                stringBuilder.append(".");
-                stringBuilder.append(readEntity.getTable().getTableName());
+                src.add(readEntity.getTable().getDbName() + "." + readEntity.getTable().getTableName());
             }
-            stringBuilder.append(EntitySplitter);
         }
-        String readEntityStr = "";
-        if (stringBuilder.length() > 0) {
-            readEntityStr = stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
-            stringBuilder.delete(0, stringBuilder.length());
-        }
+        Set<String> dest = Sets.newHashSet();
         for (WriteEntity writeEntity : context.getOutputs()) {
             if (writeEntity.getTable() != null) {
-                stringBuilder.append(writeEntity.getTable().getDbName());
-                stringBuilder.append(".");
-                stringBuilder.append(writeEntity.getTable().getTableName());
-                stringBuilder.append(";");
+                dest.add(writeEntity.getTable().getDbName() + "." + writeEntity.getTable().getTableName());
             }
         }
-        String writeEntityStr = "";
-        if (stringBuilder.length() > 0) {
-            writeEntityStr = stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString();
-        }
+
         AuditLogger.info("query_id={}|user={}|operation={}|src={}|dst={}|command={}", new Object[]{
                 queryId, context.getUserName(), operation.getOperationName(),
-                readEntityStr, writeEntityStr, context.getCommand()});
+                EntityJoiner.join(src), EntityJoiner.join(dest), context.getCommand().replaceAll("\\s+", " ")});
     }
 
     public static void logAuditLog(HiveOperationType hiveOpType, List<HivePrivilegeObject> inputHObjs,
                                    List<HivePrivilegeObject> outputHObjs, HiveAuthzContext context,
                                    String serverName, String user) {
+//        CreateTableLog.Builder builder = new CreateTableLog.Builder();
+        HiveLog.Builder builder = new HiveLog.Builder();
 //        String queryId = context.getConf().get(HiveConf.ConfVars.HIVEQUERYID.toString());
         if (hiveOpType == HiveOperationType.CREATETABLE || hiveOpType == HiveOperationType.CREATETABLE_AS_SELECT) {
-            CreateTableLog.Builder builder = new CreateTableLog.Builder();
             Log.debug("create table, input: {}, output: {}", new Object[]{inputHObjs,
                     outputHObjs});
             if (outputHObjs.size() > 0) {
                 HivePrivilegeObject table = outputHObjs.get(outputHObjs.size() - 1);
-                builder.setQueryId("").setTableName(table.getObjectName())
-                        .setCreateUser(user)
-                        .setProject(table.getDbname()).setTableDescription(context.getCommandString());
-                HiveJdbcLogger.info(builder.build().toString());
+                Log.debug("[create table]table privilege, db: {}, table: {}", table.getDbname(),
+                        table.getObjectName());
+//                builder.setQueryId("").setTableName(table.getObjectName())
+//                        .setCreateUser(user)
+//                        .setProject(table.getDbname()).setTableDescription(context.getCommandString());
+                builder.setTableName(table.getObjectName()).setUser(user)
+                        .setProject(table.getDbname())
+                        .setOperation("create")
+                        .setServer(serverName)
+                        .setDescription(context.getCommandString().replaceAll("\\s+", ""));
+//                HiveJdbcLogger.info(builder.build().toString());
+                HiveLogLogger.info("{}", builder.build());
             }
         } else if (hiveOpType == HiveOperationType.DROPTABLE){
-            CreateTableLog.Builder builder = new CreateTableLog.Builder();
             Log.debug("drop table, input: {}, output: {}", new Object[]{
                     inputHObjs, outputHObjs});
             if (inputHObjs.size() > 0) {
                 HivePrivilegeObject table = inputHObjs.get(inputHObjs.size() - 1);
-                builder.setQueryId("").setTableName(table.getObjectName())
-                        .setCreateUser(user)
-                        .setProject(table.getDbname()).setTableDescription("drop");
-                HiveJdbcLogger.info(builder.build().toString());
+//                builder.setQueryId("").setTableName(table.getObjectName())
+//                        .setCreateUser(user)
+//                        .setProject(table.getDbname()).setTableDescription("drop");
+//                HiveJdbcLogger.info(builder.build().toString());
+                builder.setOperation("drop")
+                        .setProject(table.getDbname())
+                        .setTableName(table.getObjectName())
+                        .setUser(user).setServer(serverName);
+                HiveLogLogger.info("{}", builder.build());
             }
         }
     }
+
 
     static void writeHiveLog() {
 //        HiveLog.Builder builder = new HiveLog.Builder();

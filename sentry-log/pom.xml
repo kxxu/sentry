@@ -80,6 +80,25 @@ limitations under the License.
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>4.1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-api-jdo</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-rdbms</artifactId>
+            <version>4.1.7</version>
+        </dependency>
+
+
+
+
     </dependencies>
 
     <build>
@@ -142,9 +161,12 @@ limitations under the License.
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <datanucleus-api-jdo.version>3.2.6</datanucleus-api-jdo.version>
-                <datanucleus-core.version>3.2.12</datanucleus-core.version>
-                <datanucleus-rdbms.version>3.2.12</datanucleus-rdbms.version>
+                <!--<datanucleus-api-jdo.version>3.2.6</datanucleus-api-jdo.version>-->
+                <!--<datanucleus-core.version>3.2.12</datanucleus-core.version>-->
+                <!--<datanucleus-rdbms.version>3.2.12</datanucleus-rdbms.version>-->
+                <datanucleus-api-jdo.version>4.2.1</datanucleus-api-jdo.version>
+                <datanucleus-core.version>4.1.6</datanucleus-core.version>
+                <datanucleus-rdbms.version>4.1.7</datanucleus-rdbms.version>
             </properties>
             <dependencies>
                 <dependency>

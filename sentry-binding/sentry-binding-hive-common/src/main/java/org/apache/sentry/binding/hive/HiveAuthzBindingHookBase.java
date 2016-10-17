@@ -31,6 +31,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.JavaUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -134,30 +135,31 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
   }
 
   public static HiveAuthzConf loadAuthzConf(HiveConf hiveConf) {
-    boolean depreicatedConfigFile = false;
-    HiveAuthzConf newAuthzConf = null;
-    String hiveAuthzConf = hiveConf.get(HiveAuthzConf.HIVE_SENTRY_CONF_URL);
-    if(hiveAuthzConf == null || (hiveAuthzConf = hiveAuthzConf.trim()).isEmpty()) {
-      hiveAuthzConf = hiveConf.get(HiveAuthzConf.HIVE_ACCESS_CONF_URL);
-      depreicatedConfigFile = true;
-    }
-
-    if(hiveAuthzConf == null || (hiveAuthzConf = hiveAuthzConf.trim()).isEmpty()) {
-      throw new IllegalArgumentException("Configuration key " + HiveAuthzConf.HIVE_SENTRY_CONF_URL
-          + " value '" + hiveAuthzConf + "' is invalid.");
-    }
-    try {
-      newAuthzConf = new HiveAuthzConf(new URL(hiveAuthzConf));
-    } catch (MalformedURLException e) {
-      if (depreicatedConfigFile) {
-        throw new IllegalArgumentException("Configuration key " + HiveAuthzConf.HIVE_ACCESS_CONF_URL
-            + " specifies a malformed URL '" + hiveAuthzConf + "'", e);
-      } else {
-        throw new IllegalArgumentException("Configuration key " + HiveAuthzConf.HIVE_SENTRY_CONF_URL
-            + " specifies a malformed URL '" + hiveAuthzConf + "'", e);
-      }
-    }
-    return newAuthzConf;
+//    boolean depreicatedConfigFile = false;
+//    HiveAuthzConf newAuthzConf = null;
+//    String hiveAuthzConf = hiveConf.get(HiveAuthzConf.HIVE_SENTRY_CONF_URL);
+//    if(hiveAuthzConf == null || (hiveAuthzConf = hiveAuthzConf.trim()).isEmpty()) {
+//      hiveAuthzConf = hiveConf.get(HiveAuthzConf.HIVE_ACCESS_CONF_URL);
+//      depreicatedConfigFile = true;
+//    }
+//
+//    if(hiveAuthzConf == null || (hiveAuthzConf = hiveAuthzConf.trim()).isEmpty()) {
+//      throw new IllegalArgumentException("Configuration key " + HiveAuthzConf.HIVE_SENTRY_CONF_URL
+//          + " value '" + hiveAuthzConf + "' is invalid.");
+//    }
+//    try {
+//      newAuthzConf = new HiveAuthzConf(new URL(hiveAuthzConf));
+//    } catch (MalformedURLException e) {
+//      if (depreicatedConfigFile) {
+//        throw new IllegalArgumentException("Configuration key " + HiveAuthzConf.HIVE_ACCESS_CONF_URL
+//            + " specifies a malformed URL '" + hiveAuthzConf + "'", e);
+//      } else {
+//        throw new IllegalArgumentException("Configuration key " + HiveAuthzConf.HIVE_SENTRY_CONF_URL
+//            + " specifies a malformed URL '" + hiveAuthzConf + "'", e);
+//      }
+//    }
+//    return newAuthzConf;
+    return HiveAuthzConf.getAuthzConf(hiveConf);
   }
 
   @Override
@@ -499,7 +501,6 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
    *
    * @param inputHierarchy
    * @param entity
-   * @param sentryContext
    */
   protected void addColumnHierarchy(List<List<DBModelAuthorizable>> inputHierarchy,
       ReadEntity entity) {
@@ -526,8 +527,7 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
    * Get Authorizable from inputs and put into inputHierarchy
    *
    * @param inputHierarchy
-   * @param entity
-   * @param sentryContext
+   * @param inputs
    */
   protected void getInputHierarchyFromInputs(List<List<DBModelAuthorizable>> inputHierarchy,
       Set<ReadEntity> inputs) {
@@ -741,7 +741,7 @@ public abstract class HiveAuthzBindingHookBase extends AbstractSemanticAnalyzerH
    * Returns the hooks specified in a configuration variable.  The hooks are returned in a list in
    * the order they were specified in the configuration variable.
    *
-   * @param hookConfVar The configuration variable specifying a comma separated list of the hook
+   * @param csHooks The configuration variable specifying a comma separated list of the hook
    *                    class names.
    * @return            A list of the hooks, in the order they are listed in the value of hookConfVar
    * @throws Exception

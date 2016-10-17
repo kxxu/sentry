@@ -69,7 +69,8 @@ limitations under the License.
     <fest.reflect.version>1.4.1</fest.reflect.version>
     <!--<guava.version>11.0.2</guava.version>-->
     <guava.version>18.0</guava.version>
-    <hadoop.version>2.6.0</hadoop.version>
+    <!--<hadoop.version>2.6.0</hadoop.version>-->
+    <hadoop.version>2.6.0-cdh5.5.0</hadoop.version>
     <hamcrest.version>1.3</hamcrest.version>
     <hive-v2.version>2.0.0</hive-v2.version>
   <!--  <hive.version>1.1.0</hive.version>  -->
@@ -89,7 +90,7 @@ limitations under the License.
     <maven.eclipse.plugin.version>2.9</maven.eclipse.plugin.version>
     <maven.enforcer.plugin.version>1.3.1</maven.enforcer.plugin.version>
     <metrics.version>3.0.1</metrics.version>
-    <mockito.version>1.8.5</mockito.version>
+    <mockito.version>1.10.19</mockito.version>
     <objenesis.version>1.2</objenesis.version>
     <pig.version>0.12.0</pig.version>
     <shiro.version>1.2.3</shiro.version>

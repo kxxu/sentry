@@ -28,6 +28,8 @@ import org.apache.logging.log4j.core.config.plugins.PluginElement;
 import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.sentry.log.constants.JDOConstants;
 import org.apache.sentry.log.model.HiveLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jdo.*;
 import java.io.Serializable;
@@ -40,25 +42,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Created by kxxu on 2016/9/2.
  */
 @Plugin(
-        name="HiveLog",
+        name="SentryTableLog",
         category = "Core",
         elementType = "appender",
         printObject = true
 )
 public class HiveLogAppender extends AbstractAppender {
-
+    private static final Logger Log = LoggerFactory.getLogger(HiveLogAppender.class);
     private PersistenceManagerFactory pmf;
     private Properties props;
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final Lock readLock = rwLock.readLock();
 
-
-    protected HiveLogAppender(String name, Filter filter, Layout<? extends Serializable> layout, boolean ignoreExceptions) {
-        super(name, filter, layout, ignoreExceptions);
-    }
-
     protected HiveLogAppender(String name, String url, String username, String password, String ignore, Filter filter) {
-        this(name, filter, null, Boolean.parseBoolean(ignore));
+        super(name, filter, null, Boolean.parseBoolean(ignore));
         props = new Properties();
         props.putAll(JDOConstants.HIVELOG_STORE_DEFAULTS);
         props.setProperty("javax.jdo.option.ConnectionURL", url);
@@ -66,40 +63,36 @@ public class HiveLogAppender extends AbstractAppender {
         props.setProperty("javax.jdo.option.ConnectionPassword", password);
 //        props.setProperty("javax.jdo.option.ConnectionDriverName", "com.mysql.jdbc.Driver");
         pmf = JDOHelper.getPersistenceManagerFactory(props);
-        System.out.println("hive log appender init");
         LOGGER.info("hive log appender init, name: {}, url: {}", name, url);
-
     }
 
     @Override
     public void append(LogEvent logEvent) {
         readLock.lock();
-        Object[] args = logEvent.getMessage().getParameters();
-        LOGGER.info("get args: {}", args);
         try {
-            if (args.length != 2) {
-                System.out.println("arguments is not 2, message: " + logEvent.getMessage().getFormattedMessage());
+            Object[] args = logEvent.getMessage().getParameters();
+            Log.info("get args: {}", args);
+            if (args != null && args.length != 1) {
+                Log.warn("arguments is not 1, message: " + logEvent.getMessage().getFormattedMessage());
                 return;
             }
-            String operation = args[0].toString();
-            switch (operation) {
+            HiveLog hiveLog = (HiveLog) args[0];
+            switch (hiveLog.getOperation()) {
                 case "create":
-                    createLog((HiveLog) args[1]);
+                    createLog(hiveLog);
                     break;
                 case "drop":
-                    deleteLog((HiveLog) args[1]);
+                    deleteLog(hiveLog);
                     break;
                 default:
-                    System.out.println("not a valid log type, message: " + logEvent.getMessage().getFormattedMessage());
+                    Log.warn("not a valid log type, message: " + logEvent.getMessage().getFormattedMessage());
                     break;
             }
         } catch (Exception ex) {
-            System.out.println("execute sql error: " + Throwables.getStackTraceAsString(ex));
             LOGGER.error("execute sql error: {}", Throwables.getStackTraceAsString(ex) );
             if (!ignoreExceptions()) {
                 throw new AppenderLoggingException(ex);
             }
-//            getHandler().error("execute sql error", ex);
         } finally {
             readLock.unlock();
         }
@@ -124,6 +117,7 @@ public class HiveLogAppender extends AbstractAppender {
         query.declareParameters("java.lang.String t,java.lang.String y, java.lang.String s");
         query.setUnique(true);
         Object value = query.execute(log.getProject(), log.getTableName(), log.getServer());
+        LOGGER.info("jdo query result: {}", value);
         pm.deletePersistent(value);
         pm.currentTransaction().commit();
         pm.close();

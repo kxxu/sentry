@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.IllegalFormatException;
 import java.util.List;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -53,8 +54,11 @@ import org.apache.sentry.provider.db.service.persistent.SentryStoreSchemaInfo;
 import org.apache.sentry.provider.db.tools.SentrySchemaHelper.NestedScriptParser;
 import org.apache.sentry.service.thrift.SentryService;
 import org.apache.sentry.service.thrift.ServiceConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SentrySchemaTool {
+  private static final Logger Log = LoggerFactory.getLogger(SentrySchemaTool.class);
   private static final String SENTRY_SCRIP_DIR = File.separatorChar + "scripts"
       + File.separatorChar + "sentrystore" + File.separatorChar + "upgrade";
   private String userName = null;
@@ -257,6 +261,8 @@ public class SentrySchemaTool {
   public void doUpgrade(String fromSchemaVer) throws SentryUserException {
     if (sentryStoreSchemaInfo.getSentrySchemaVersion().equals(fromSchemaVer)) {
       System.out.println("No schema upgrade required from version " + fromSchemaVer);
+      Log.warn("No schema upgrade required from version, now version: {}, update version: {}",
+              sentryStoreSchemaInfo.getSentrySchemaVersion(), fromSchemaVer);
       return;
     }
     // Find the list of scripts to execute for this upgrade
@@ -266,16 +272,22 @@ public class SentrySchemaTool {
     System.out.println("Starting upgrade sentry store schema from version " +
  fromSchemaVer + " to "
         + sentryStoreSchemaInfo.getSentrySchemaVersion());
+    Log.info("Starting upgrade sentry store schema from version {} to {}", fromSchemaVer,
+            sentryStoreSchemaInfo.getSentrySchemaVersion());
     String scriptDir = sentryStoreSchemaInfo.getSentryStoreScriptDir();
     try {
       for (String scriptFile : upgradeScripts) {
         System.out.println("Upgrade script " + scriptFile);
+        Log.info("Upgrade script " + scriptFile);
         if (!dryRun) {
           runBeeLine(scriptDir, scriptFile);
           System.out.println("Completed " + scriptFile);
+          Log.info("Completed {}", scriptFile);
         }
       }
     } catch (IOException eIO) {
+      Log.error("Upgrade FAILED! Metastore state would be inconsistent !!, error: {}",
+              Throwables.getStackTraceAsString(eIO));
       throw new SentryUserException(
           "Upgrade FAILED! Metastore state would be inconsistent !!", eIO);
     }
@@ -290,6 +302,7 @@ public class SentrySchemaTool {
    * @throws SentryUserException
    */
   public void doInit() throws SentryUserException {
+    Log.info("schema init version: {}", sentryStoreSchemaInfo.getSentrySchemaVersion());
     doInit(sentryStoreSchemaInfo.getSentrySchemaVersion());
 
     // Revalidated the new version after upgrade
@@ -306,17 +319,21 @@ public class SentrySchemaTool {
   public void doInit(String toVersion) throws SentryUserException {
     testConnectionToMetastore();
     System.out.println("Starting sentry store schema initialization to " + toVersion);
+    Log.info("Starting sentry store schema initialization to {}", toVersion);
 
     String initScriptDir = sentryStoreSchemaInfo.getSentryStoreScriptDir();
     String initScriptFile = sentryStoreSchemaInfo.generateInitFileName(toVersion);
 
     try {
       System.out.println("Initialization script " + initScriptFile);
+      Log.info("Initialization script {}", initScriptFile);
       if (!dryRun) {
         runBeeLine(initScriptDir, initScriptFile);
         System.out.println("Initialization script completed");
+        Log.info("Initialization script completed");
       }
     } catch (IOException e) {
+      Log.error("init fail, Metastore state would be inconsistent !! error: {}", Throwables.getStackTraceAsString(e));
       throw new SentryUserException("Schema initialization FAILED!"
           + " Metastore state would be inconsistent !!", e);
     }
@@ -507,6 +524,7 @@ public class SentrySchemaTool {
       } catch (ParseException e) {
         System.err.println("SentrySchemaTool:Parsing failed.  Reason: "
             + e.getLocalizedMessage());
+        Log.error("SentrySchemaTool:Parsing failed.  Reason: ", e);
         printAndExit(cmdLineOptions);
       }
 

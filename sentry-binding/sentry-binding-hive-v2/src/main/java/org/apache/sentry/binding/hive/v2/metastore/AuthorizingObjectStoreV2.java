@@ -26,6 +26,8 @@ import java.util.Set;
 
 import javax.security.auth.login.LoginException;
 
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.ObjectStore;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
@@ -40,6 +42,7 @@ import org.apache.hadoop.hive.metastore.api.UnknownDBException;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.shims.Utils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.sentry.binding.hive.HiveAuthzBindingHookBase;
 import org.apache.sentry.binding.hive.authz.HiveAuthzBinding;
 import org.apache.sentry.binding.hive.conf.HiveAuthzConf;
@@ -70,6 +73,37 @@ public class AuthorizingObjectStoreV2 extends ObjectStore {
   private static HiveAuthzBinding hiveAuthzBinding;
   private static String NO_ACCESS_MESSAGE_TABLE = "Table does not exist or insufficient privileges to access: ";
   private static String NO_ACCESS_MESSAGE_DATABASE = "Database does not exist or insufficient privileges to access: ";
+
+  void validateTableUser(org.apache.hadoop.hive.metastore.api.Table table) throws MetaException {
+    if (table != null && Strings.isNullOrEmpty(table.getOwner())) {
+      try {
+        UserGroupInformation ugi = Utils.getUGI();
+        if (!Strings.isNullOrEmpty(ugi.getUserName())) {
+          table.setOwner(ugi.getUserName());
+        }
+      } catch (Exception ex) {
+        throw new MetaException("can not get user name " + Throwables.getStackTraceAsString(ex));
+      }
+    }
+  }
+
+  @Override
+  public void createTable(Table tbl) throws InvalidObjectException, MetaException {
+    LOGGER.info("[object store]create table,db: {}, name: {}, user: {}",
+            new Object[]{tbl.getDbName(), tbl.getTableName(), tbl.getOwner()});
+    validateTableUser(tbl);
+    LOGGER.info("[after validate]create table,db: {}, name: {}, user: {}",
+            new Object[]{tbl.getDbName(), tbl.getTableName(), tbl.getOwner()});
+    super.createTable(tbl);
+  }
+
+  @Override
+  public void alterTable(String dbname, String name, Table newTable) throws InvalidObjectException, MetaException {
+    LOGGER.info("[object store]alter table, db: {}, old table name: {}, new table name: {}",
+            new Object[]{dbname, name, newTable.getTableName()});
+    validateTableUser(newTable);
+    super.alterTable(dbname, name, newTable);
+  }
 
   @Override
   public List<String> getDatabases(String pattern) throws MetaException {

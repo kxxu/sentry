@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
    contributor license agreements.  See the NOTICE file distributed with
@@ -15,21 +15,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<Configuration status="info" packages="com.iflytek.log">
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </Console>
-        <File name="file" fileName="/usr/local/sentry/test.log">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </File>
-    </Appenders>
-    <Loggers>
-        <Root level="INFO">
-            <AppenderRef ref="Console" />
-        </Root>
-        <Logger name="org.apache.sentry" level="DEBUG">
-            <AppenderRef ref="file" />
-        </Logger>
-    </Loggers>
-</Configuration>
+<c3p0-config>
+    <default-config>
+        <property name="driverClass">com.mysql.jdbc.Driver</property>
+        <property name="jdbcUrl">jdbc:mysql://192.168.65.100:3306/sentry</property>
+        <property name="user">root</property>
+        <property name="password">iflytek</property>
+        <property name="autoCommitOnClose">false</property>
+        <property name="initialPoolSize">10</property>
+        <property name="maxIdleTime">30</property>
+        <property name="maxPoolSize">20</property>
+        <property name="minPoolSize">5</property>
+        <property name="maxStatements">200</property>
+    </default-config>
+
+
+</c3p0-config>

@@ -18,7 +18,7 @@
 bin=`dirname "$0"`
 myhome=`cd "$bin/.."; pwd`
 RUN_CONFIG_TOOL=0
-SENTRY_OPTS = " -Dlog4j.configurationFile=sentry-log4j2.xml "
+#SENTRY_OPTS=" -Dlog4j.configurationFile=sentry-log4j2.xml "
 
 # the root of the Hive installation
 if [[ -z $SENTRY_HOME ]] ; then

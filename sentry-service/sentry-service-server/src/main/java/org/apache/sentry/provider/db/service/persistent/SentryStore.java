@@ -155,6 +155,7 @@ public class SentryStore {
     prop.setProperty(ServerConfig.JAVAX_JDO_USER, user);
     prop.setProperty(ServerConfig.JAVAX_JDO_PASS, pass);
     prop.setProperty(ServerConfig.JAVAX_JDO_DRIVER_NAME, driverName);
+    LOGGER.info("jdbc url: {}, jdbc user: {}, pass: {}, driver name: {}", new Object[]{jdbcUrl, user, pass, driverName});
     for (Map.Entry<String, String> entry : conf) {
       String key = entry.getKey();
       if (key.startsWith(ServerConfig.SENTRY_JAVAX_JDO_PROPERTY_PREFIX) ||
@@ -1275,7 +1276,7 @@ public class SentryStore {
 
   /**
    * Gets sentry role objects for a given groupName from the persistence layer
-   * @param groupName : groupName to look up ( if null returns all roles for all groups)
+   * @param groupNames : groupName to look up ( if null returns all roles for all groups)
    * @return : Set of thrift sentry role objects
    * @throws SentryNoSuchObjectException
    */

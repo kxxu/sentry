@@ -62,7 +62,7 @@
     </property>
     <property>
         <name>sentry.store.jdbc.url</name>
-        <value>jdbc:mysql://localhost:3306/sentry</value>
+        <value>jdbc:mysql://localhost:3306/sentry?createDatabaseIfNotExist=true</value>
     </property>
     <property>
         <name>sentry.store.jdbc.driver</name>

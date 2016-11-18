@@ -28,8 +28,11 @@ import java.util.Set;
 
 import javax.security.auth.login.LoginException;
 
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStorePreEventListener;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
@@ -47,6 +50,7 @@ import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.shims.Utils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.sentry.binding.hive.authz.HiveAuthzBinding;
 import org.apache.sentry.binding.hive.conf.HiveAuthzConf;
 import org.apache.sentry.binding.hive.conf.HiveAuthzConf.AuthzConfVars;
@@ -435,7 +439,11 @@ public abstract class MetastoreAuthzBindingBase extends MetaStorePreEventListene
     if (sd == null) {
       return "";
     } else {
-      return sd.getLocation();
+      Path location = new Path(sd.getLocation());
+      if (location.toUri().getScheme() == null) {
+        location = new Path(hiveConf.get("fs.defaultFS") + sd.getLocation());
+      }
+      return location.toString();
     }
   }
 

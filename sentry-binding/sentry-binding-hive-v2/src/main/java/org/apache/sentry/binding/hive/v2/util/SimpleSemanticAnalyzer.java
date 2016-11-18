@@ -207,12 +207,14 @@ public class SimpleSemanticAnalyzer {
   }
 
   private String trimCmd(String cmd) {
+    cmd = cmd.replaceAll("`", "");
     Pattern pattern = Pattern.compile(EXPLAIT_REGEX, Pattern.CASE_INSENSITIVE);
     Matcher matcher = pattern.matcher(cmd);
     return matcher.find() ? matcher.replaceFirst("") : cmd;
   }
 
   private void parse(HiveOperation hiveOp, String cmd) throws HiveAuthzPluginException {
+
     switch (hiveOp) {
       case DROPDATABASE:
       case DESCDATABASE:

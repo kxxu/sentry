@@ -184,6 +184,9 @@ public class PathUtils {
       if (StringUtils.isEmpty(uriScheme) || isLocal) {
         uriScheme = LOCAL_FILE_SCHEMA;
         uriAuthority = "";
+        LOGGER.info("sentry input uri: {}, scheme is null, use scheme: {}", uri, LOCAL_FILE_SCHEMA);
+      } else {
+        LOGGER.info("sentry metastore uri: {}, input uri: {}", warehouseDir, uri);
       }
 
       uriPath = new Path(uriScheme + AUTHORITY_PREFIX + StringUtils.trimToEmpty(uriAuthority)

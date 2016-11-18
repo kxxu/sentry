@@ -32,6 +32,8 @@ public class HiveLog {
     private String queryId;
     @NotPersistent
     private String operation;
+    @NotPersistent
+    private String oldTableName;
     private String tableName;
     private String project;
     private String user;
@@ -52,6 +54,15 @@ public class HiveLog {
 
     public HiveLog setQueryId(String queryId) {
         this.queryId = queryId;
+        return this;
+    }
+
+    public String getOldTableName() {
+        return oldTableName;
+    }
+
+    public HiveLog setOldTableName(String oldTableName) {
+        this.oldTableName = oldTableName;
         return this;
     }
 
@@ -137,6 +148,7 @@ public class HiveLog {
         return MoreObjects.toStringHelper(this)
                 .add("queryId", queryId)
                 .add("operation", operation)
+                .add("old table name", oldTableName)
                 .add("tableName", tableName)
                 .add("project", project)
                 .add("user", user)
@@ -147,6 +159,7 @@ public class HiveLog {
     }
     public static class Builder{
         private String queryId;
+        private String oldTableName;
         private String tableName;
         private String project;
         private String user;
@@ -156,6 +169,11 @@ public class HiveLog {
 
         public Builder setQueryId(String queryId) {
             this.queryId = queryId;
+            return this;
+        }
+
+        public Builder setOldTableName(String oldTableName) {
+            this.oldTableName = oldTableName;
             return this;
         }
 
@@ -192,7 +210,8 @@ public class HiveLog {
         public HiveLog build() {
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             HiveLog log = new HiveLog(tableName, project, user, server);
-            log.setQueryId(queryId).setServer(server).setOperation(operation).setCreatedTime(timestamp);
+            log.setQueryId(queryId).setServer(server).setOperation(operation)
+                    .setOldTableName(oldTableName).setCreatedTime(timestamp);
             return log;
         }
     }

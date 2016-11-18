@@ -17,6 +17,7 @@
 package org.apache.sentry.core.common.service;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,7 @@ public class HadoopGroupMappingService implements GroupMappingService {
 
   private static Configuration hadoopConf;
   private final Groups groups;
+//  private final Configuration myconf;
 
   public HadoopGroupMappingService(Groups groups) {
     this.groups = groups;
@@ -57,14 +59,15 @@ public class HadoopGroupMappingService implements GroupMappingService {
         }
       }
     }
-    LOGGER.info("group class name: {}", conf.get("hadoop.security.group.mapping"));
-    LOGGER.info("group name: {}", conf.getClass("hadoop.security.group.mapping",
+    URL uri = Thread.currentThread().getContextClassLoader().getResource("/etc/hadoop/conf/core-site.xml");
+    LOGGER.info("hadoop core site: ", uri);
+    LOGGER.info("get hadoop config: {}", conf);
+    LOGGER.info("group class name: {}", hadoopConf.get("hadoop.security.group.mapping"));
+    LOGGER.info("group name: {}", hadoopConf.getClass("hadoop.security.group.mapping",
             ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
 //    conf.setClass("hadoop.security.group.mapping", LdapGroupsMapping.class, GroupMappingServiceProvider.class);
-    this.groups = Groups.getUserToGroupsMappingService(hadoopConf);
+    this.groups = Groups.getUserToGroupsMappingService(conf);
     LOGGER.info("ldap url: {}", hadoopConf.get("hadoop.security.group.mapping.ldap.url"));
-    System.out.println("group name: " + conf.getClass("hadoop.security.group.mapping",
-            ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
   }
 
   @Override
@@ -84,6 +87,7 @@ public class HadoopGroupMappingService implements GroupMappingService {
       groupList = Lists.newArrayList();
       LOGGER.warn("sentry unable to obtain groups for {}", user);
     }
+    LOGGER.info("user: {}, sentry group: {}", user, groupList);
 //    if (groupList == null || groupList.isEmpty()) {
 //      throw new SentryGroupNotFoundException("Unable to obtain groups for " + user);
 //    }

@@ -184,6 +184,10 @@ public class SentryService implements Callable {
   }
 
   private void runServer() throws Exception {
+    System.out.println("===================class path=======================");
+    System.out.println(System.getProperty("java.class.path"));
+    Class<?> clazz2 = Class.forName("org.apache.hadoop.hive.metastore.model.MDatabase");
+    System.out.println("metastore clazz: " + clazz2);
     Iterable<String> processorFactories = ConfUtilties.CLASS_SPLITTER
         .split(conf.get(ServerConfig.PROCESSOR_FACTORIES,
             ServerConfig.PROCESSOR_FACTORIES_DEFAULT).trim());

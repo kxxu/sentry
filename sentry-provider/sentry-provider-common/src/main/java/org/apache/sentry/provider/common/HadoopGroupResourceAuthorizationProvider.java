@@ -18,15 +18,20 @@
 package org.apache.sentry.provider.common;
 
 import java.io.IOException;
+import java.net.URL;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.GroupMappingServiceProvider;
 import org.apache.hadoop.security.Groups;
+import org.apache.hadoop.security.ShellBasedUnixGroupsMapping;
 import org.apache.sentry.core.common.Model;
 import org.apache.sentry.core.common.service.GroupMappingService;
 import org.apache.sentry.core.common.service.HadoopGroupMappingService;
 import org.apache.sentry.policy.common.PolicyEngine;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HadoopGroupResourceAuthorizationProvider extends
   ResourceAuthorizationProvider {
@@ -35,6 +40,8 @@ public class HadoopGroupResourceAuthorizationProvider extends
   // for the GroupMappingService rather than using Hadoop's static mapping.
   public static final String CONF_PREFIX = HadoopGroupResourceAuthorizationProvider.class.getName();
   public static final String USE_NEW_GROUPS = CONF_PREFIX + ".useNewGroups";
+  private static final Logger LOGGER = LoggerFactory.getLogger(HadoopGroupResourceAuthorizationProvider.class);
+
 
   // resource parameter present so that other AuthorizationProviders (e.g.
   // LocalGroupResourceAuthorizationProvider) has the same constructor params.
@@ -55,6 +62,13 @@ public class HadoopGroupResourceAuthorizationProvider extends
   }
 
   private static Groups getGroups(Configuration conf) {
+//    LOGGER.info("get groups conf: {}", conf);
+//    LOGGER.info("group class name: {}", conf.get("hadoop.security.group.mapping"));
+//    LOGGER.info("group name: {}", conf.getClass("hadoop.security.group.mapping",
+//            ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
+//    URL url = Thread.currentThread().getContextClassLoader().getResource("core-site.xml");
+//    LOGGER.info("core site xml: {}", url);
+//    LOGGER.info("class path: {}", System.getProperty("java.class.path"));
     if (conf.getBoolean(USE_NEW_GROUPS, false)) {
       return new Groups(conf);
     } else {

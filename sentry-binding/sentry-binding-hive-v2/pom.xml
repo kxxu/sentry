@@ -22,16 +22,19 @@ limitations under the License.
   <parent>
     <groupId>org.apache.sentry</groupId>
     <artifactId>sentry-binding</artifactId>
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.8.0</version>
   </parent>
 
   <artifactId>sentry-binding-hive-v2</artifactId>
   <name>Sentry Binding v2 for Hive</name>
 
   <properties>
-    <datanucleus-api-jdo.version>4.2.1</datanucleus-api-jdo.version>
-    <datanucleus-core.version>4.1.6</datanucleus-core.version>
-    <datanucleus-rdbms.version>4.1.7</datanucleus-rdbms.version>
+    <!--<datanucleus-api-jdo.version>4.2.1</datanucleus-api-jdo.version>-->
+    <!--<datanucleus-core.version>4.1.6</datanucleus-core.version>-->
+    <!--<datanucleus-rdbms.version>4.1.7</datanucleus-rdbms.version>-->
+    <datanucleus-api-jdo.version>3.2.6</datanucleus-api-jdo.version>
+    <datanucleus-core.version>3.2.12</datanucleus-core.version>
+    <datanucleus-rdbms.version>3.2.12</datanucleus-rdbms.version>
     <datanucleus-jdo.version>3.2.0-m3</datanucleus-jdo.version>
   </properties>
 

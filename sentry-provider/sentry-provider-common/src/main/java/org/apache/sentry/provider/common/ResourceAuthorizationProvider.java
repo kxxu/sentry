@@ -107,7 +107,7 @@ public abstract class ResourceAuthorizationProvider implements AuthorizationProv
       for (Authorizable authorizable : authorizables) {
         hierarchy.add(KV_JOINER.join(authorizable.getTypeName(), authorizable.getName()));
       }
-      LOGGER.debug("get privileges args, groups: {}, users: {}, role set: {}, authorizables: {}",
+      LOGGER.info("get privileges args, groups: {}, users: {}, role set: {}, authorizables: {}",
               new Object[]{groups, users, roleSet, authorizables.toArray(new Authorizable[0])});
       Iterable<Privilege> privileges = getPrivileges(groups, users, roleSet,
               authorizables.toArray(new Authorizable[0]));
@@ -121,10 +121,10 @@ public abstract class ResourceAuthorizationProvider implements AuthorizationProv
          * Does the permission granted in the policy file imply the requested action?
          */
           boolean result = permission.implies(priv, model);
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("ProviderPrivilege {}, RequestPrivilege {}, RoleSet, {}, Result {}",
-                    new Object[]{permission, requestPrivilege, roleSet, result});
-          }
+//          if (LOGGER.isDebugEnabled()) {
+            LOGGER.info("user: {}, group: {}, ProviderPrivilege {}, RequestPrivilege {}, RoleSet, {}, Result {}",
+                    new Object[]{users, groups, permission, requestPrivilege, roleSet, result});
+//          }
           if (result) {
             return true;
           }

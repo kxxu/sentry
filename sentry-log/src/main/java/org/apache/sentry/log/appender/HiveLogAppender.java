@@ -16,6 +16,7 @@
  */
 package org.apache.sentry.log.appender;
 
+import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
@@ -84,11 +85,14 @@ public class HiveLogAppender extends AbstractAppender {
                 case "drop":
                     deleteLog(hiveLog);
                     break;
+                case "alter":
+                    alterLog(hiveLog);
+                    break;
                 default:
                     Log.warn("not a valid log type, message: " + logEvent.getMessage().getFormattedMessage());
                     break;
             }
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             LOGGER.error("execute sql error: {}", Throwables.getStackTraceAsString(ex) );
             if (!ignoreExceptions()) {
                 throw new AppenderLoggingException(ex);
@@ -99,11 +103,53 @@ public class HiveLogAppender extends AbstractAppender {
 
     }
 
+
     void createLog(HiveLog log) {
+        if (Strings.isNullOrEmpty(log.getUser())) {
+            LOGGER.error("[create table]table owner is null: {}", log);
+        }
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction currentTransaction = pm.currentTransaction();
         currentTransaction.begin();
-        pm.makePersistent(log);
+        Query query = pm.newQuery(HiveLog.class);
+        query.setFilter("this.project == t && this.tableName == y && this.server == s");
+        query.declareParameters("java.lang.String t,java.lang.String y, java.lang.String s");
+        query.setUnique(true);
+        HiveLog value = (HiveLog) query.execute(log.getProject(), log.getOldTableName(), log.getServer());
+        if (value == null) {
+            pm.makePersistent(log);
+            LOGGER.info("[create table]persistent log: {}", log);
+        } else {
+            LOGGER.warn("create table error, table {} exists", log.getTableName());
+        }
+        pm.currentTransaction().commit();
+        pm.close();
+    }
+
+    void alterLog(HiveLog log) {
+        if (Strings.isNullOrEmpty(log.getUser())) {
+            LOGGER.error("[alter table]table owner is null: {}", log);
+        }
+        PersistenceManager pm = pmf.getPersistenceManager();
+        Transaction currentTransaction = pm.currentTransaction();
+        currentTransaction.begin();
+        Query query = pm.newQuery(HiveLog.class);
+        query.setFilter("this.project == t && this.tableName == y && this.server == s");
+        query.declareParameters("java.lang.String t,java.lang.String y, java.lang.String s");
+        query.setUnique(true);
+        HiveLog value = (HiveLog) query.execute(log.getProject(), log.getOldTableName(), log.getServer());
+        Log.info("get old value: {}", value);
+        if (value != null){
+            value.setTableName(log.getTableName());
+            if (!Strings.isNullOrEmpty(log.getUser())) {
+                value.setUser(log.getUser());
+            }
+            pm.makePersistent(value);
+//            pm.refresh(value);
+        } else {
+            pm.makePersistent(log);
+            Log.error("can not alter table name, old table not found, hive log: {}", log);
+        }
         pm.currentTransaction().commit();
         pm.close();
     }
@@ -118,7 +164,9 @@ public class HiveLogAppender extends AbstractAppender {
         query.setUnique(true);
         Object value = query.execute(log.getProject(), log.getTableName(), log.getServer());
         LOGGER.info("jdo query result: {}", value);
-        pm.deletePersistent(value);
+        if (value != null) {
+            pm.deletePersistent(value);
+        }
         pm.currentTransaction().commit();
         pm.close();
     }

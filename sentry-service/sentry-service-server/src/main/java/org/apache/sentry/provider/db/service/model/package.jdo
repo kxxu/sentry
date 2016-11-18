@@ -33,7 +33,7 @@
       </datastore-identity>
       <field name="groupName">
         <column name="GROUP_NAME" length="128" jdbc-type="VARCHAR"/>
-        <index name="SentryGroupName" unique="true"/>
+        <index name="SENTRY_GRP_GRP_NAME_UNIQUE" unique="true"/>
       </field>
       <field name = "createTime">
         <column name = "CREATE_TIME" jdbc-type="BIGINT"/>
@@ -51,7 +51,7 @@
       </datastore-identity>
       <field name="userName">
         <column name="USER_NAME" length="128" jdbc-type="VARCHAR"/>
-        <index name="SentryUserName" unique="true"/>
+        <index name="SENTRY_USER_USER_NAME_UNIQUE" unique="true"/>
       </field>
       <field name = "createTime">
         <column name = "CREATE_TIME" jdbc-type="BIGINT"/>
@@ -69,7 +69,7 @@
       </datastore-identity>
       <field name="roleName">
         <column name="ROLE_NAME" length="128" jdbc-type="VARCHAR"/>
-        <index name="SentryRoleName" unique="true"/>
+        <index name="SENTRY_ROLE_ROLE_NAME_UNIQUE" unique="true"/>
       </field>
       <field name = "createTime">
         <column name = "CREATE_TIME" jdbc-type="BIGINT"/>
@@ -119,7 +119,7 @@
       <datastore-identity>
         <column name="DB_PRIVILEGE_ID"/>
       </datastore-identity>
-      <index name="PRIVILEGE_INDEX" unique="true">
+      <index name="SENTRY_DB_PRIV_PRIV_NAME_UNIQ" unique="true">
         <field name="serverName"/>
         <field name="dbName"/>
         <field name="tableName"/>
@@ -164,7 +164,7 @@
       <datastore-identity>
         <column name="GM_PRIVILEGE_ID"/>
       </datastore-identity>
-      <index name="GM_PRIVILEGE_INDEX" unique="true">
+      <index name="GM_PRIVILEGE_UNIQUE" unique="true">
         <field name="componentName"/>
         <field name="serviceName"/>
         <field name="resourceName0"/>

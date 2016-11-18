@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.MetaStoreEventListener;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -43,6 +44,7 @@ import org.apache.sentry.core.common.Authorizable;
 import org.apache.sentry.core.model.db.Database;
 import org.apache.sentry.core.model.db.Server;
 import org.apache.sentry.core.model.db.Table;
+import org.apache.sentry.log.model.HiveLog;
 import org.apache.sentry.provider.db.SentryMetastoreListenerPlugin;
 import org.apache.sentry.provider.db.service.thrift.SentryPolicyServiceClient;
 import org.apache.sentry.service.thrift.SentryServiceClientFactory;
@@ -54,8 +56,9 @@ import org.slf4j.LoggerFactory;
 public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SentryMetastoreListenerPlugin.class);
-  private final HiveAuthzConf authzConf;
-  private final Server server;
+  private static final Logger HiveLogLogger = LoggerFactory.getLogger("tablelog");
+  protected final HiveAuthzConf authzConf;
+  protected final Server server;
 
   protected List<SentryMetastoreListenerPlugin> sentryPlugins = new ArrayList<SentryMetastoreListenerPlugin>();
 
@@ -87,6 +90,7 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
             .newInstance(config, authzConf);
         sentryPlugins.add(plugin);
       }
+      LOGGER.info("init meta store post event listener");
     } catch (Exception e) {
       LOGGER.error("Could not initialize Plugin !!", e);
       throw new RuntimeException(e);
@@ -102,6 +106,8 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
         " since the operation failed. \n");
       return;
     }
+    LOGGER.info("meta store post event, create table: {}, location: {}", tableEvent.getTable().getTableName(),
+              tableEvent.getTable().getSd().getLocation());
 
     if (tableEvent.getTable().getSd().getLocation() != null) {
       String authzObj = tableEvent.getTable().getDbName() + "."
@@ -111,6 +117,7 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
         plugin.addPath(authzObj, path);
       }
     }
+//    LOGGER.info("create table, database: {}, table name: {}", );
 
     // drop the privileges on the given table, in case if anything was left
     // behind during the drop
@@ -131,6 +138,8 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
         " since the operation failed. \n");
       return;
     }
+
+    LOGGER.info("meta store post event, drop table: {}", tableEvent);
 
     if (tableEvent.getTable().getSd().getLocation() != null) {
       String authzObj = tableEvent.getTable().getDbName() + "."
@@ -162,6 +171,8 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
         " since the operation failed. \n");
       return;
     }
+    LOGGER.info("meta store post event, create db: {}, location: {}", dbEvent.getDatabase().getName(),
+            dbEvent.getDatabase().getLocationUri());
 
     if (dbEvent.getDatabase().getLocationUri() != null) {
       String authzObj = dbEvent.getDatabase().getName();
@@ -221,6 +232,7 @@ public class SentryMetastorePostEventListenerBase extends MetaStoreEventListener
     String oldLoc = null, newLoc = null;
     org.apache.hadoop.hive.metastore.api.Table oldTal = tableEvent.getOldTable();
     org.apache.hadoop.hive.metastore.api.Table newTal = tableEvent.getNewTable();
+    LOGGER.info("meta store post event,alter rename table, old table: {}, new table: {}", oldTal, newTal);
     if (oldTal != null && oldTal.getSd() != null) {
       oldLoc = oldTal.getSd().getLocation();
     }

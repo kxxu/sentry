@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.ql.security.HiveAuthenticationProvider;
@@ -305,7 +306,9 @@ public class DefaultSentryValidator extends SentryHiveAuthorizationValidator {
           currDatabase = analyzer.getCurrentDb();
           String udfClassName = analyzer.getCurrentTb();
           try {
-            CodeSource udfSrc = Class.forName(udfClassName).getProtectionDomain().getCodeSource();
+            CodeSource udfSrc = Class.forName(udfClassName,true, Utilities.getSessionSpecifiedClassLoader())
+                    .getProtectionDomain().getCodeSource();
+//            CodeSource udfSrc = Class.forName(udfClassName).getProtectionDomain().getCodeSource();
             if (udfSrc == null) {
               throw new HiveAuthzPluginException("Could not resolve the jar for UDF class "
                   + udfClassName);
@@ -315,11 +318,11 @@ public class DefaultSentryValidator extends SentryHiveAuthorizationValidator {
               throw new HiveAuthzPluginException("Could not find the jar for UDF class "
                   + udfClassName + "to validate privileges");
             }
-            AccessURI udfURI = SentryAuthorizerUtil.parseURI(udfSrc.getLocation().toString(), true);
-            List<DBModelAuthorizable> udfUriHierarchy = new ArrayList<DBModelAuthorizable>();
-            udfUriHierarchy.add(hiveAuthzBinding.getAuthServer());
-            udfUriHierarchy.add(udfURI);
-            inputHierarchyList.add(udfUriHierarchy);
+//            AccessURI udfURI = SentryAuthorizerUtil.parseURI(udfSrc.getLocation().toString(), true);
+//            List<DBModelAuthorizable> udfUriHierarchy = new ArrayList<DBModelAuthorizable>();
+//            udfUriHierarchy.add(hiveAuthzBinding.getAuthServer());
+//            udfUriHierarchy.add(udfURI);
+//            inputHierarchyList.add(udfUriHierarchy);
           } catch (Exception e) {
             throw new HiveAuthzPluginException("Error retrieving udf class", e);
           }

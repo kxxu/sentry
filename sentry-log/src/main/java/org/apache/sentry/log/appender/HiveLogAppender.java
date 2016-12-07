@@ -19,7 +19,6 @@ package org.apache.sentry.log.appender;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import org.apache.logging.log4j.core.Filter;
-import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.appender.AppenderLoggingException;
@@ -33,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jdo.*;
-import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -60,11 +62,34 @@ public class HiveLogAppender extends AbstractAppender {
         props = new Properties();
         props.putAll(JDOConstants.HIVELOG_STORE_DEFAULTS);
         props.setProperty("javax.jdo.option.ConnectionURL", url);
-        props.setProperty("javax.jdo.option.ConnectionUserName", username);
-        props.setProperty("javax.jdo.option.ConnectionPassword", password);
-//        props.setProperty("javax.jdo.option.ConnectionDriverName", "com.mysql.jdbc.Driver");
+        props.setProperty("javax.jdo.option.ConnectionUserName", username.trim());
+        props.setProperty("javax.jdo.option.ConnectionPassword", password.trim());
+        props.setProperty("javax.jdo.option.ConnectionDriverName", "com.mysql.jdbc.Driver");
+        LOGGER.info("hive log appender init, name: {}, url: {}, user name: {}, password: {}",
+                new Object[]{name, url, username, password});
+//        try {
+//            Class.forName("com.mysql.jdbc.Driver");
+//            Connection connection = DriverManager.getConnection(url, "root", "iflytek");
+//            Statement statement = connection.createStatement();
+//            ResultSet resultSet = statement.executeQuery("SELECT * FROM  filebrowser_hive_table limit 2");
+//            while (resultSet.next()) {
+//                System.out.println(resultSet.getString(1));
+//            }
+//            if (!"root".equals(username)) {
+//                System.out.println("user name is wrong, user:" + username + ".");
+//            }
+//            if (!"iflytek".equals(password)) {
+//                System.out.println("password is wrong, password:" + password + ".");
+//            }
+//
+//        } catch (Exception ex) {
+//            System.out.println(Throwables.getStackTraceAsString(ex));
+//            LOGGER.error(Throwables.getStackTraceAsString(ex));
+//        }
+
         pmf = JDOHelper.getPersistenceManagerFactory(props);
-        LOGGER.info("hive log appender init, name: {}, url: {}", name, url);
+        LOGGER.info("hive log appender init success, name: {}, url: {}, user name: {}, password: {}.",
+                new Object[]{name, url, username, password});
     }
 
     @Override

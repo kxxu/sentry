@@ -23,7 +23,8 @@ import com.google.common.collect.ImmutableMap;
  */
 public interface JDOConstants {
     ImmutableMap<String, String> HIVELOG_STORE_DEFAULTS = ImmutableMap.<String, String>builder()
-            .put("datanucleus.connectionPoolingType", "c3p0")
+//            .put("datanucleus.connectionPoolingType", "c3p0")
+            .put("datanucleus.connectionPoolingType", "BoneCP")
             .put("datanucleus.validateTables", "false")
             .put("datanucleus.validateColumns", "false")
             .put("datanucleus.validateConstraints", "false")

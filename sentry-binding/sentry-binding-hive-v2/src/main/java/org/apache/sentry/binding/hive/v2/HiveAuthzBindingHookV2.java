@@ -75,6 +75,8 @@ public class HiveAuthzBindingHookV2 extends HiveAuthzBindingHookBase {
                 "to validate privileges");
           }
           udfURI = parseURI(udfSrc.getLocation().toString(), true);
+          LOG.info("create function, jar uri: {}", udfURI);
+          udfURI = null;
         } catch (ClassNotFoundException e) {
           throw new SemanticException("Error retrieving udf class", e);
         }

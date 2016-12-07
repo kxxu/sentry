@@ -16,11 +16,11 @@
  */
 package org.apache.sentry.hdfs;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.UnresolvedLinkException;
-import org.apache.hadoop.fs.permission.FsAction;
-import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.permission.*;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.server.namenode.AclFeature;
 import org.apache.hadoop.hdfs.server.namenode.AuthorizationProvider;
@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +41,8 @@ public class DirSentryAuthorizationProvider extends AuthorizationProvider implem
     private static final Logger LOGGER = LoggerFactory.getLogger(DirSentryAuthorizationProvider.class);
     private static final short DEFAUTL_DIR_PERMISSION = new FsPermission("005").toShort();
     private static final short DIR_EXECUTE = new FsPermission("001").toShort();
+    private static final Set<String> ReservedPath = ImmutableSet.of("/","/project", "/user", "/tmp");
+    private static final Set<String> ReservedPathSuffix = ImmutableSet.of("/project", "/user/hive/warehouse");
     private boolean started;
     private Configuration conf;
     private AuthorizationProvider defaultAuthzProvider;
@@ -81,9 +84,15 @@ public class DirSentryAuthorizationProvider extends AuthorizationProvider implem
             inodeIndex--;
         }
         INodeAuthorizationInfo inodeInfo = nodes[inodeIndex];
+
         FsPermission inodePermission = defaultAuthzProvider.getFsPermission(inodeInfo, snapshotId);
         LOGGER.debug("check permission path: {}, permission: {}", nodes[inodeIndex].getFullPathName(),
                 inodePermission);
+        if (pathStartWith(inodeInfo.getFullPathName()) &&
+                checkParentAccessAcl(user, groups, inodeInfo, snapshotId, access, inodePermission)) {
+            return;
+        }
+
         if (inodeInfo.isDirectory() && (inodePermission.toShort() & DIR_EXECUTE) != 0) {
             FsPermission newPermission = new FsPermission((short) (inodePermission.toShort() | DEFAUTL_DIR_PERMISSION));
             setPermission(inodeInfo, newPermission);
@@ -98,6 +107,54 @@ public class DirSentryAuthorizationProvider extends AuthorizationProvider implem
             defaultAuthzProvider.checkPermission(user, groups, nodes, snapshotId, doCheckOwner, ancestorAccess,
                     parentAccess,access, subAccess, ignoreEmptyDir);
         }
+    }
+
+    public boolean pathStartWith(String pathName) {
+        for (String suffix : ReservedPathSuffix) {
+            if (pathName.startsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean checkParentAccessAcl(String user, Set<String> groups, INodeAuthorizationInfo iNode, int snapshotId, FsAction access, FsPermission mode) {
+        INodeAuthorizationInfo parent = iNode.getParent();
+        if (parent == null || ReservedPath.contains(parent.getFullPathName())) {
+            return false;
+        }
+
+        if (parent.getAclFeature(snapshotId) != null) {
+            for (AclEntry entry : parent.getAclFeature(snapshotId).getEntries()) {
+                if (entry.getScope() == AclEntryScope.ACCESS) {
+                    if (entry.getType() == AclEntryType.GROUP) {
+                        if (groups.contains(entry.getName())) {
+                            FsAction groupAccess = mode.getGroupAction().and(entry.getPermission());
+                            if (groupAccess.implies(access)) {
+                                LOGGER.info("parent acl access true, user: {}, group:{},path: {}, acl: {}", new Object[]{
+                                        user, groups, parent.getFullPathName(), entry
+                                });
+                                return true;
+                            }
+                            return false;
+                        }
+                    } else if (entry.getType() == AclEntryType.USER){
+                        if (user.equals(entry.getName())) {
+                            FsAction userAccess = mode.getGroupAction().and(entry.getPermission());
+                            if (userAccess.implies(access)) {
+                                LOGGER.info("parent acl access true, user: {}, group: {}, path: {}, acl:{}", new Object[]{
+                                        user, groups, parent.getFullPathName(), entry
+                                });
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return checkParentAccessAcl(user, groups, parent, snapshotId, access, mode);
     }
 
     @Override

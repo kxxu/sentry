@@ -19,12 +19,17 @@ package org.apache.sentry.binding.hive.v2.metastore;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.AclEntry;
+import org.apache.hadoop.fs.permission.AclEntryScope;
+import org.apache.hadoop.fs.permission.AclStatus;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hive.metastore.api.MetaException;
+import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.events.AlterTableEvent;
 import org.apache.hadoop.hive.metastore.events.CreateDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.CreateTableEvent;
@@ -39,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/10/31.
@@ -69,15 +75,18 @@ public class SentryMetastoreLogEventListener extends SentryMetastorePostEventLis
             return;
         }
         try {
-            LOGGER.info("[create database]db name: {}, owner: {}, uri: {}", new Object[]{dbEvent.getDatabase().getName(),
-                    getUserName(dbEvent.getDatabase().getOwnerName()),
-                    dbEvent.getDatabase().getName()});
+            LOGGER.info("[create database]db name: {}, owner: {}, owner type: {}, uri: {}",
+                    new Object[]{dbEvent.getDatabase().getName(),
+                            getUserName(dbEvent.getDatabase().getOwnerName()),
+                            dbEvent.getDatabase().getOwnerType(),
+                            dbEvent.getDatabase().getLocationUri()});
             modifyPermission(dbEvent.getDatabase().getLocationUri(),
                     getUserName(dbEvent.getDatabase().getOwnerName()),
                     dbEvent.getDatabase().getName());
         } catch (Exception e) {
             LOGGER.error("[create database]modify database uri({}) permission error {}", dbEvent.getDatabase().getLocationUri(),
                     Throwables.getStackTraceAsString(e));
+            throw new MetaException("[create database]modify permission error " + e.getMessage());
         }
     }
 
@@ -105,10 +114,11 @@ public class SentryMetastoreLogEventListener extends SentryMetastorePostEventLis
 
                 modifyPermission(tableEvent.getTable().getSd().getLocation(), userName,
                         tableEvent.getTable().getDbName());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.error("[create table]modify table uri({}) failed {}",
                         tableEvent.getTable().getSd().getLocation(),
                         Throwables.getStackTraceAsString(e));
+                throw new MetaException("[create table]modify permission error " + e.getMessage());
             }
         }
     }
@@ -155,15 +165,18 @@ public class SentryMetastoreLogEventListener extends SentryMetastorePostEventLis
             if (!Strings.isNullOrEmpty(tableEvent.getNewTable().getSd().getLocation())) {
                 modifyPermission(tableEvent.getNewTable().getSd().getLocation(), userName,
                         tableEvent.getNewTable().getDbName());
+//                moveAclFeature(tableEvent);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.error(String.format("[alter table]modify new table permission error, new table: %s.%s, uri: %s, error: %s",
                     tableEvent.getNewTable().getDbName(), tableEvent.getNewTable().getTableName(),
                     tableEvent.getNewTable().getSd().getLocation(),
                     Throwables.getStackTraceAsString(e)));
+            throw new MetaException("[alter table]modify permission error " + e.getMessage());
         }
     }
 
+    //修改表的组和用户
     void modifyPermission(String uri, String user, String group) throws IOException {
         if (fileSystem != null && !Strings.isNullOrEmpty(uri)
                 && !Strings.isNullOrEmpty(user) && !Strings.isNullOrEmpty(group)) {
@@ -177,21 +190,63 @@ public class SentryMetastoreLogEventListener extends SentryMetastorePostEventLis
         }
     }
 
+    //迁移表的acl
+    void moveAclFeature(AlterTableEvent tableEvent) throws IOException {
+        if (tableEvent.getOldTable() != null && tableEvent.getNewTable() != null) {
+            String oldLocation = tableEvent.getOldTable().getSd().getLocation();
+            String newLocation = tableEvent.getNewTable().getSd().getLocation();
+            if (!Strings.isNullOrEmpty(oldLocation) && !Strings.isNullOrEmpty(newLocation) &&
+                    !oldLocation.equals(newLocation)) {
+                Path oldPath = new Path(oldLocation);
+                AclStatus oldStatus = fileSystem.getAclStatus(oldPath);
+                if (oldStatus != null) {
+                    List<AclEntry> aclEntryList = Lists.newArrayList();
+                    for (AclEntry aclEntry : oldStatus.getEntries()) {
+                        if (aclEntry.getScope() == AclEntryScope.ACCESS) {
+                            aclEntryList.add(aclEntry);
+                        }
+                    }
+                    if (!aclEntryList.isEmpty()) {
+                        fileSystem.setAcl(new Path(newLocation), aclEntryList);
+                        fileSystem.removeAclEntries(oldPath, aclEntryList);
+                    }
+                }
+            }
+        }
+    }
+
     void modifyPermission(Path path, String user, String group) throws IOException {
         if (path == null) {
             return;
         }
-        fileSystem.setOwner(path, user, group);
-        fileSystem.setPermission(path, permission);
-        FileStatus[] fileStatuses = fileSystem.listStatus(path);
-        if (fileStatuses == null || fileStatuses.length == 0) {
-            return;
+        FileStatus pathStatus = fileSystem.getFileStatus(path);
+        if (pathStatus != null) {
+            fileSystem.setOwner(path, user, group);
+            fileSystem.setPermission(path, permission);
         } else {
-            for (FileStatus item : fileStatuses) {
-                modifyPermission(item.getPath(), user, group);
+            return;
+        }
+        if (pathStatus.isDirectory()) {
+            FileStatus[] fileStatuses = fileSystem.listStatus(path);
+            if (fileStatuses == null || fileStatuses.length == 0) {
+                return;
+            } else {
+                for (FileStatus item : fileStatuses) {
+                    modifyPermission(item.getPath(), user, group);
+                }
             }
         }
+
     }
+
+    String getUserName(PrincipalType principalType, String name) throws MetaException {
+        if (principalType == PrincipalType.GROUP) {
+            return getUserName(null);
+        } else {
+            return getUserName(name);
+        }
+    }
+
 
     String getUserName(String userName) throws MetaException {
         if (Strings.isNullOrEmpty(userName)) {

@@ -26,19 +26,12 @@ import java.util.Set;
 
 import javax.security.auth.login.LoginException;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.ObjectStore;
-import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
-import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.api.Index;
-import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
-import org.apache.hadoop.hive.metastore.api.MetaException;
-import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
-import org.apache.hadoop.hive.metastore.api.Partition;
-import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.hadoop.hive.metastore.api.UnknownDBException;
+import org.apache.hadoop.hive.metastore.api.*;
 import org.apache.hadoop.hive.ql.parse.SemanticException;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.shims.Utils;
@@ -98,6 +91,12 @@ public class AuthorizingObjectStoreV2 extends ObjectStore {
   }
 
   @Override
+  public void createDatabase(Database db) throws InvalidObjectException, MetaException {
+    LOGGER.info("[create database]db name: {}");
+    super.createDatabase(db);
+  }
+
+  @Override
   public void alterTable(String dbname, String name, Table newTable) throws InvalidObjectException, MetaException {
     LOGGER.info("[object store]alter table, db: {}, old table name: {}, new table name: {}",
             new Object[]{dbname, name, newTable.getTableName()});
@@ -133,10 +132,23 @@ public class AuthorizingObjectStoreV2 extends ObjectStore {
   @Override
   public Table getTable(String dbName, String tableName) throws MetaException {
     Table table = super.getTable(dbName, tableName);
-    if (table == null
-        || filterTables(dbName, Lists.newArrayList(tableName)).isEmpty()) {
-      return null;
+    LOGGER.info("get table, db name: {}, table name: {}, table: {}",
+            new Object[]{dbName, tableName, table});
+//    if (table == null
+//        || filterTables(dbName, Lists.newArrayList(tableName)).isEmpty()) {
+//      return null;
+//    }
+    if (table != null && filterTables(dbName, Lists.newArrayList(tableName)).isEmpty()) {
+      throw new MetaException("you have no valid privilege.");
     }
+//    for (FieldSchema fieldSchema : table.getSd().getCols()) {
+//      if (!Strings.isNullOrEmpty(fieldSchema.getComment())) {
+//        LOGGER.info("get field schema, name: {}, comment: {}, bytes: {}", new Object[]{fieldSchema.getName(),
+//                fieldSchema.getComment(), fieldSchema.getComment().getBytes(Charsets.ISO_8859_1)});
+//        fieldSchema.setComment(new String(fieldSchema.getComment().getBytes(), Charsets.UTF_8));
+//      }
+//    }
+    LOGGER.info("get table value: {}", table);
     return table;
   }
 

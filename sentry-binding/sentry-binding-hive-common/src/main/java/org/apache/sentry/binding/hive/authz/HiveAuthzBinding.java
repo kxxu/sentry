@@ -299,9 +299,9 @@ public class HiveAuthzBinding {
    * @param hiveOp
    * @param stmtAuthPrivileges
    * @param subject
-   * @param currDB
-   * @param inputEntities
-   * @param outputEntities
+//   * @param currDB
+   * @param inputHierarchyList
+   * @param outputHierarchyList
    * @throws AuthorizationException
    */
   public void authorize(HiveOperation hiveOp, HiveAuthzPrivileges stmtAuthPrivileges,
@@ -338,6 +338,8 @@ public class HiveAuthzBinding {
       LOG.debug("requiredOuputPrivileges = " + requiredOutputPrivileges);
       LOG.debug("outputHierarchyList = " + outputHierarchyList);
     }
+    LOG.info("user: {}, required input hierarchy: {}, required output hierarchy: {}",
+            new Object[]{subject.getName(), inputHierarchyList, outputHierarchyList});
 
     boolean found = false;
     for (Map.Entry<AuthorizableType, EnumSet<DBModelAction>> entry : requiredInputPrivileges.entrySet()) {

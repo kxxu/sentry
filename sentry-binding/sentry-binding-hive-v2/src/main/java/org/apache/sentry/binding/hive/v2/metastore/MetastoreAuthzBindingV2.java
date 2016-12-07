@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.security.auth.login.LoginException;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
@@ -34,6 +35,8 @@ import org.apache.sentry.binding.hive.v2.HiveAuthzPrivilegesMapV2;
 import org.apache.sentry.binding.metastore.MetastoreAuthzBindingBase;
 import org.apache.sentry.core.common.Subject;
 import org.apache.sentry.core.model.db.DBModelAuthorizable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sentry binding for Hive Metastore. The binding is integrated into Metastore
@@ -45,6 +48,7 @@ import org.apache.sentry.core.model.db.DBModelAuthorizable;
  * that we follow the same privilege model and policies.
  */
 public class MetastoreAuthzBindingV2 extends MetastoreAuthzBindingBase {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MetastoreAuthzBindingV2.class);
 
   public MetastoreAuthzBindingV2(Configuration config) throws Exception {
     super(config);
@@ -86,12 +90,16 @@ public class MetastoreAuthzBindingV2 extends MetastoreAuthzBindingBase {
           .getHiveAuthzPrivileges(hiveOp), new Subject(getUserName()),
           inputHierarchy, outputHierarchy);
     } catch (AuthorizationException e1) {
+      LOGGER.error("auth exception: {}", Throwables.getStackTraceAsString(e1));
       throw invalidOperationException(e1);
     } catch (LoginException e1) {
+      LOGGER.error("login exception: {}", Throwables.getStackTraceAsString(e1));
       throw invalidOperationException(e1);
     } catch (IOException e1) {
+      LOGGER.error("io exception: {}", Throwables.getStackTraceAsString(e1));
       throw invalidOperationException(e1);
     } catch (Exception e) {
+      LOGGER.error("pre event exception: {}", Throwables.getStackTraceAsString(e));
       throw invalidOperationException(e);
     }
 

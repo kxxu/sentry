@@ -24,6 +24,10 @@ RUN_CONFIG_TOOL=0
 if [[ -z $SENTRY_HOME ]] ; then
   export SENTRY_HOME=$myhome
 fi
+SENTRY_CONF=${SENTRY_CONF:-/etc/sentry/conf}
+if [ -e ${SENTRY_CONF}/sentry-env.sh ];then
+    . ${SENTRY_CONF}/sentry-env.sh
+fi
 
 # check for hadoop in the path
 HADOOP_IN_PATH=`which hadoop 2>/dev/null`
@@ -61,13 +65,13 @@ while [ $# -gt 0 ]; do    # Until you run out of parameters . . .
       ;;
   esac
 done
-HADOOP_CLASSPATH=${SENTRY_HOME}/conf:${HADOOP_CLASSPATH}
+HADOOP_CLASSPATH=${SENTRY_CONF}:${HADOOP_CLASSPATH}
 export _CMD_JAR=sentry-core-common-*.jar
 for f in ${SENTRY_HOME}/lib/*.jar; do
 #  HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${f}
   CLASSPATH=${f}:${CLASSPATH}
 done
-HADOOP_CLASSPATH=${SENTRY_HOME}/lib/*:${SENTRY_HOME}/conf
+HADOOP_CLASSPATH=${SENTRY_HOME}/lib/*:${SENTRY_CONF}
 HADOOP_OPTS=" ${SENTRY_OPTS} ${HADOOP_OPTS}"
 export HADOOP_USER_CLASSPATH_FIRST=true
 export HADOOP_CLASSPATH

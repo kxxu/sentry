@@ -97,9 +97,9 @@ public class HiveLogAppender extends AbstractAppender {
         readLock.lock();
         try {
             Object[] args = logEvent.getMessage().getParameters();
-            Log.info("get args: {}", args);
+            LOGGER.info("get args: {}", args);
             if (args != null && args.length != 1) {
-                Log.warn("arguments is not 1, message: " + logEvent.getMessage().getFormattedMessage());
+                LOGGER.warn("arguments is not 1, message: " + logEvent.getMessage().getFormattedMessage());
                 return;
             }
             HiveLog hiveLog = (HiveLog) args[0];
@@ -114,7 +114,7 @@ public class HiveLogAppender extends AbstractAppender {
                     alterLog(hiveLog);
                     break;
                 default:
-                    Log.warn("not a valid log type, message: " + logEvent.getMessage().getFormattedMessage());
+                    LOGGER.warn("not a valid log type, message: " + logEvent.getMessage().getFormattedMessage());
                     break;
             }
         } catch (Throwable ex) {
@@ -140,10 +140,12 @@ public class HiveLogAppender extends AbstractAppender {
         query.setFilter("this.project == t && this.tableName == y && this.server == s");
         query.declareParameters("java.lang.String t,java.lang.String y, java.lang.String s");
         query.setUnique(true);
-        HiveLog value = (HiveLog) query.execute(log.getProject(), log.getOldTableName(), log.getServer());
+        HiveLog value = (HiveLog) query.execute(log.getProject(), log.getTableName(), log.getServer());
         if (value == null) {
             pm.makePersistent(log);
             LOGGER.info("[create table]persistent log: {}", log);
+            value = (HiveLog) query.execute(log.getProject(), log.getTableName(), log.getServer());
+            LOGGER.info("[create table]query log: {}", value);
         } else {
             LOGGER.warn("create table error, table {} exists", log.getTableName());
         }
@@ -163,7 +165,7 @@ public class HiveLogAppender extends AbstractAppender {
         query.declareParameters("java.lang.String t,java.lang.String y, java.lang.String s");
         query.setUnique(true);
         HiveLog value = (HiveLog) query.execute(log.getProject(), log.getOldTableName(), log.getServer());
-        Log.info("get old value: {}", value);
+        LOGGER.info("get old value: {}", value);
         if (value != null){
             value.setTableName(log.getTableName());
             if (!Strings.isNullOrEmpty(log.getUser())) {

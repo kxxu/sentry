@@ -838,6 +838,7 @@ public class SentryPolicyStoreProcessor implements SentryPolicyService.Iface {
     // load the group mapping provider class
     GroupMappingService groupMappingService;
     try {
+      LOGGER.info("group mapping: {}, auth resource: {}", groupMapping, authResoruce);
       Constructor<?> constrctor = Class.forName(groupMapping)
           .getDeclaredConstructor(Configuration.class, String.class);
       constrctor.setAccessible(true);

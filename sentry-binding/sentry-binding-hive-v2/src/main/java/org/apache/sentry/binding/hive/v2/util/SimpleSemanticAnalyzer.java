@@ -98,21 +98,21 @@ public class SimpleSemanticAnalyzer {
   /**
    * MSCK REPAIR TABLE table_name;
    */
-  private static final String MSCK_REGEX = "^MSCK\\s+" + "REPAIR\\s" + "TABLE\\s"
+  private static final String MSCK_REGEX = "^MSCK\\s+" + "REPAIR\\s+" + "TABLE\\s+"
       + "([A-Za-z0-9._]+)";
 
   /**
    * ALTER INDEX index_name ON table_name [PARTITION partition_spec] REBUILD;
    */
   private static final String ALTER_INDEX_REGEX = "^ALTER\\s+" + "INDEX\\s+"
-      + "([A-Za-z0-9_]+)\\s+" + "ON\\s" + "([A-Za-z0-9._]+)";
+      + "([A-Za-z0-9_]+)\\s+" + "ON\\s+" + "([A-Za-z0-9._]+)";
 
   /**
    * CREATE FUNCTION [db_name.]function_name AS class_name [USING JAR|FILE|ARCHIVE 'file_uri' [,
    * JAR|FILE|ARCHIVE 'file_uri'] ];
    */
   private static final String CREATE_FUNCTION_REGEX = "^CREATE\\s+" + "(TEMPORARY\\s+)?"
-      + "FUNCTION\\s+" + "([A-Za-z0-9._]+)\\s+" + "AS\\s" + "([A-Za-z0-9._']+)";
+      + "FUNCTION\\s+" + "([A-Za-z0-9._]+)\\s+" + "AS\\s+" + "([A-Za-z0-9._']+)";
 
   /**
    * SHOW COLUMNS FROM table_name
@@ -124,7 +124,7 @@ public class SimpleSemanticAnalyzer {
       + "([A-Za-z0-9._]+)";
 
   private static final String LOAD = "^LOAD\\s+" + "DATA\\s+" + "(LOCAL\\s+)?" + "INPATH\\s+"
-      + "([A-Za-z0-9._':///-]+)" +"\\s" + "INTO\\s" + "TABLE\\s" + "([A-Za-z0-9._]+)";
+      + "([A-Za-z0-9._':///-]+)" +"\\s+" + "(OVERWRITE\\s+)?" + "INTO\\s+" + "TABLE\\s+" + "([A-Za-z0-9._]+)";
 
   /**
    * LOCK DATABASE dbname;

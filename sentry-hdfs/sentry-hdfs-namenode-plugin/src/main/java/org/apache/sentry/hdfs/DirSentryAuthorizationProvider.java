@@ -42,7 +42,8 @@ public class DirSentryAuthorizationProvider extends AuthorizationProvider implem
     private static final short DEFAUTL_DIR_PERMISSION = new FsPermission("005").toShort();
     private static final short DIR_EXECUTE = new FsPermission("001").toShort();
     private static final Set<String> ReservedPath = ImmutableSet.of("/","/project", "/user", "/tmp");
-    private static final Set<String> ReservedPathSuffix = ImmutableSet.of("/project", "/user/hive/warehouse");
+    private static final Set<String> ReservedPathSuffix = ImmutableSet.of("/project", "/user/hive/warehouse",
+            "/user/compass");
     private boolean started;
     private Configuration conf;
     private AuthorizationProvider defaultAuthzProvider;

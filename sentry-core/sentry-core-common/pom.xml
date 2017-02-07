@@ -74,6 +74,7 @@ limitations under the License.
       <artifactId>hadoop-common</artifactId>
       <scope>provided</scope>
     </dependency>
+
   </dependencies>
 
   <build>

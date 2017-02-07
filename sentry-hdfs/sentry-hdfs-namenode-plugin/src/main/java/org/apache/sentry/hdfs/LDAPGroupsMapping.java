@@ -205,7 +205,7 @@ public class LDAPGroupsMapping implements GroupMappingServiceProvider, Configura
      * So in case connection is closed and gets CommunicationException, retry some times with new new DirContext/connection.
      */
         try {
-//            LOG.warn("ldap get groups, user: " + user);
+            LOG.warn("ldap get groups, user: " + user);
             return doGetGroups(user);
         } catch (CommunicationException e) {
             LOG.warn("Connection is closed, will try to reconnect");
@@ -284,7 +284,6 @@ public class LDAPGroupsMapping implements GroupMappingServiceProvider, Configura
                 }
             }
         }
-
         return groups;
     }
 

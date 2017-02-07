@@ -21,9 +21,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.JavaUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.metastore.Warehouse;
+import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.ql.hooks.Hook;
 import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
@@ -72,8 +75,14 @@ public class SentryAuthorizerUtil {
    */
   public static AccessURI parseURI(String uri, boolean isLocal) throws URISyntaxException {
     HiveConf conf = SessionState.get().getConf();
+
     String warehouseDir = conf.getVar(ConfVars.METASTOREWAREHOUSE);
-    return new AccessURI(PathUtils.parseURI(warehouseDir, uri, isLocal));
+    try {
+      Path warehousePath = Warehouse.getDnsPath(new Path(warehouseDir), conf);
+      return new AccessURI(PathUtils.parseURI(warehousePath.toString(), uri, isLocal));
+    } catch (MetaException e) {
+      throw new URISyntaxException(warehouseDir, "can not get warehouse dir path");
+    }
   }
 
   /**

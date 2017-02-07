@@ -68,6 +68,9 @@ public class HadoopGroupMappingService implements GroupMappingService {
 //    conf.setClass("hadoop.security.group.mapping", LdapGroupsMapping.class, GroupMappingServiceProvider.class);
     this.groups = Groups.getUserToGroupsMappingService(conf);
     LOGGER.info("ldap url: {}", hadoopConf.get("hadoop.security.group.mapping.ldap.url"));
+    LOGGER.info("ldap user: {}, password: {}", hadoopConf.get("hadoop.security.group.mapping.ldap.bind.user"),
+            hadoopConf.get("hadoop.security.group.mapping.ldap.bind.password"));
+
   }
 
   @Override

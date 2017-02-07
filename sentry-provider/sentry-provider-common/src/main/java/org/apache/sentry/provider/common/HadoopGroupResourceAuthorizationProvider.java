@@ -62,13 +62,15 @@ public class HadoopGroupResourceAuthorizationProvider extends
   }
 
   private static Groups getGroups(Configuration conf) {
-//    LOGGER.info("get groups conf: {}", conf);
-//    LOGGER.info("group class name: {}", conf.get("hadoop.security.group.mapping"));
-//    LOGGER.info("group name: {}", conf.getClass("hadoop.security.group.mapping",
-//            ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
-//    URL url = Thread.currentThread().getContextClassLoader().getResource("core-site.xml");
-//    LOGGER.info("core site xml: {}", url);
-//    LOGGER.info("class path: {}", System.getProperty("java.class.path"));
+    LOGGER.info("get groups conf: {}", conf);
+    LOGGER.info("group class name: {}", conf.get("hadoop.security.group.mapping"));
+    LOGGER.info("group name: {}", conf.getClass("hadoop.security.group.mapping",
+            ShellBasedUnixGroupsMapping.class, GroupMappingServiceProvider.class));
+    URL url = Thread.currentThread().getContextClassLoader().getResource("core-site.xml");
+    LOGGER.info("core site xml: {}", url);
+    LOGGER.info("ldap url: {}", conf.get("hadoop.security.group.mapping.ldap.url"));
+    LOGGER.info("ldap user: {}, password: {}", conf.get("hadoop.security.group.mapping.ldap.bind.user"),
+            conf.get("hadoop.security.group.mapping.ldap.bind.password"));
     if (conf.getBoolean(USE_NEW_GROUPS, false)) {
       return new Groups(conf);
     } else {

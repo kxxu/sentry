@@ -162,19 +162,20 @@
   </property>
   <property>
     <name>hadoop.security.group.mapping.ldap.bind.user</name>
-    <value>cn=admin,dc=example,dc=com</value>
+    <value>cn=admin,dc=iflytek,dc=com</value>
   </property>
   <property>
     <name>hadoop.security.group.mapping.ldap.bind.password</name>
-    <value>iflytek</value>
+    <value>test</value>
   </property>
   <property>
     <name>hadoop.security.group.mapping.ldap.url</name>
-    <value>ldap://192.168.65.95:389/</value>
+    <!--<value>ldap://192.168.65.95:389/</value>-->
+    <value>ldap://192.168.57.63:389/</value>
   </property>
   <property>
     <name>hadoop.security.group.mapping.ldap.base</name>
-    <value>dc=example,dc=com</value>
+    <value>dc=iflytek,dc=com</value>
   </property>
   <property>
     <name>hadoop.security.group.mapping.ldap.search.filter.user</name>
